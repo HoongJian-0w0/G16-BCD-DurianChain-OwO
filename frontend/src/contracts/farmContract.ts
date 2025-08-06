@@ -1,4 +1,4 @@
-import { getContract } from '@/utils/web3';
+import { getContract } from '@/contracts/web3';
 
 export async function registerFarm(farmId: string, location: string, certificateCID: string, certificateExpiry: number) {
     const contract = await getContract();

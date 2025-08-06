@@ -1,3 +1,4 @@
+/*
 package com.durianchain.service.impl;
 
 import com.alibaba.fastjson.JSON;
@@ -5,7 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.durianchain.common.util.JwtUtil;
 import com.durianchain.dto.LoginDTO;
 import com.durianchain.dto.RegisterDTO;
+import com.durianchain.entity.User;
 import com.durianchain.exception.ServiceException;
+import com.durianchain.mapper.UserMapper;
 import com.durianchain.service.IAuthService;
 import com.durianchain.vo.LoginVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,15 +21,15 @@ import java.util.Map;
 @Service
 public class IAuthServiceImpl implements IAuthService {
 
-    // @Autowired
-    // private UserMapper userMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
     public boolean registerUser(RegisterDTO dto) {
-      /*  if ("admin".equalsIgnoreCase(dto.getRole())) {
+        if ("admin".equalsIgnoreCase(dto.getRole())) {
             throw new ServiceException(403, "You are not allowed to register as admin");
         }
 
@@ -61,13 +64,12 @@ public class IAuthServiceImpl implements IAuthService {
             throw new ServiceException(500, "Failed to register user");
         }
 
-        return true;*/
         return true;
     }
 
     @Override
     public LoginVO authenticate(LoginDTO loginDTO) {
-       /* User user = userMapper.selectOne(new QueryWrapper<User>().eq("username", loginDTO.getUsername()));
+        User user = userMapper.selectOne(new QueryWrapper<User>().eq("username", loginDTO.getUsername()));
         if (user == null) {
             throw new ServiceException(404, "User not found");
         }
@@ -93,7 +95,6 @@ public class IAuthServiceImpl implements IAuthService {
         String subject = JSON.toJSONString(claimsMap);
         String token = JwtUtil.createJWT(subject, JwtUtil.JWT_TTL);
 
-        System.out.println("farmIds: " + user.getFarmIds());
 
         LoginVO vo = new LoginVO();
         vo.setToken(token);
@@ -101,12 +102,10 @@ public class IAuthServiceImpl implements IAuthService {
         vo.setUsername(user.getUsername());
         vo.setName(user.getName());
         vo.setRole(user.getRole());
-        vo.setFarmIds(user.getFarmIds());
-        vo.setLogisticsCompanyIds(user.getLogisticsCompanyIds());
-        vo.setTradingAgencyIds(user.getTradingAgencyIds());
+        vo.setRole(user.getWalletAddress());
 
-        return vo;*/
-        return null;
+        return vo;
     }
 
 }
+*/

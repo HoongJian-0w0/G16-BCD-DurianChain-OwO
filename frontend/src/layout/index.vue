@@ -12,7 +12,9 @@
           <Tabs class="tab" />
           <CloseTabs />
         </div>
-        <router-view />
+        <div class="router-view-wrapper">
+          <router-view />
+        </div>
       </el-main>
     </el-container>
   </el-container>
@@ -28,6 +30,7 @@ import CloseTabs from '@/layout/tabs/CloseTabs.vue'
 <style lang="scss" scoped>
 .layout {
   height: 100vh;
+  display: flex;
 
   .sidebar {
     width: auto;
@@ -39,30 +42,43 @@ import CloseTabs from '@/layout/tabs/CloseTabs.vue'
     background-color: #fff;
     align-items: center;
     display: flex;
+    height: 60px;
+    border-bottom: 1px solid #e5e5e5;
   }
 
   .el-main {
-    padding: 12px !important;
+    padding: 0 !important;
   }
 
   .main {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
     background-image:
         linear-gradient(90deg, rgba(116, 195, 101, 0.02), rgba(163, 217, 119, 0.1)),
         url('@/assets/svg/star-bg.svg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-
-    padding: 0 !important;
+    overflow: hidden;
 
     .tabs {
-      .tab {
-        padding-left: 10px;
-        padding-right: 80px;
-      }
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #fff;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
       border-bottom: 1px solid var(--el-border-color-light);
+      height: 40px;
+    }
+
+    .router-view-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
     }
   }
 }

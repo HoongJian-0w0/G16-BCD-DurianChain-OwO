@@ -20,7 +20,7 @@ public class CodeGenerator {
         FastAutoGenerator.create("jdbc:mysql://localhost:3306/durianchain?serverTimezone=Asia/Kuala_Lumpur","root","1234")
                 .globalConfig(builder -> {
                     builder.author("") // Author
-                            //            .enableSwagger() // Enable Swagger
+                            // .enableSwagger() // Enable Swagger
                             .outputDir(MAIN_DIRECTORY); // Export Directory
                 })
                 .packageConfig(builder -> {
@@ -33,7 +33,15 @@ public class CodeGenerator {
                 })
                 .strategyConfig(builder -> {
                     builder
-                            .addInclude("durian")
+                            .addInclude(
+                                    "farm",
+                                    "durian_variety",
+                                    "trader_agency",
+                                    "logistics_company",
+                                    "wallet_tx",
+                                    "batch",
+                                    "durian"
+                            )
                             .addTablePrefix("t_", "");
 
                     builder.entityBuilder()

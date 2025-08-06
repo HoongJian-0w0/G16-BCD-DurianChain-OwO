@@ -1,3 +1,4 @@
+/*
 package com.durianchain.controller;
 
 import com.durianchain.common.result.Result;
@@ -31,3 +32,4 @@ public class AuthController {
     }
 
 }
+*/

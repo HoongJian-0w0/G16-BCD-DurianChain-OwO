@@ -1,3 +1,4 @@
+/*
 package com.durianchain.service;
 
 import com.durianchain.dto.LoginDTO;
@@ -10,3 +11,4 @@ public interface IAuthService {
 
     LoginVO authenticate(LoginDTO loginDTO);
 }
+*/

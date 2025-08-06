@@ -76,10 +76,11 @@ function closeAllTabs() {
   outline: none;
 }
 
+
+
 .close-tabs {
   width: 80px;
   height: 40px;
-  position: fixed;
   right: 0;
   z-index: 999;
   display: flex;

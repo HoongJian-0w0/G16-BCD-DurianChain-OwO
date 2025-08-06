@@ -11,8 +11,5 @@ public class LoginVO {
     private String username;
     private String name;
     private String role;
-
-    private List<Long> farmIds;
-    private List<Long> logisticsCompanyIds;
-    private List<Long> tradingAgencyIds;
+    private String wallet;
 }
