@@ -1,0 +1,101 @@
+package ${package.Controller};
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.durianchain.common.result.Result;
+import com.durianchain.common.result.ResultCode;
+import com.durianchain.exception.ServiceException;
+
+import org.springframework.web.bind.annotation.*;
+import javax.annotation.Resource;
+import java.util.List;
+
+import $!{package.Service}.$!{table.serviceName};
+import ${package.Entity}.${entity};
+
+#if(${restControllerStyle})
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+#else
+import org.springframework.stereotype.Controller;
+#end
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+
+/**
+ * $!{table.comment} Controller
+ */
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+@RequestMapping("#if(${package.ModuleName})/${package.ModuleName}#end/#if(${controllerMappingHyphenStyle})${controllerMappingHyphen}#else${table.entityPath}#end")
+#if(${kotlin})
+        class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+#else
+    #if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+    #else
+public class ${table.controllerName} {
+    #end
+
+    @Resource
+    private ${table.serviceName} ${table.entityPath}Service;
+
+    @GetMapping
+    public Result getAll${entity}() {
+        return Result.ok().data("list", ${table.entityPath}Service.list()).message("Fetched All ${entity}");
+    }
+
+    @GetMapping("/{id}")
+    public Result getById(@PathVariable Integer id) {
+        return Result.ok().data("item", ${table.entityPath}Service.getById(id)).message("Fetched ${entity} by ID");
+    }
+
+    @PostMapping
+    public Result save(@RequestBody ${entity} ${table.entityPath}) {
+        try {
+                ${table.entityPath}Service.save(${table.entityPath});
+            return Result.ok().message("${entity} Saved Successfully");
+        } catch (Exception e) {
+            throw new ServiceException(ResultCode.INTERNAL_SERVER_ERROR, "Failed to Save ${entity}");
+        }
+    }
+
+    @PutMapping
+    public Result update(@RequestBody ${entity} ${table.entityPath}) {
+        if (${table.entityPath}Service.updateById(${table.entityPath})) {
+            return Result.ok().message("${entity} Updated Successfully");
+        }
+        throw new ServiceException(ResultCode.NOT_FOUND, "Update Failed: ${entity} Not Found");
+    }
+
+    @DeleteMapping("/{id}")
+    public Result delete(@PathVariable Integer id) {
+        if (${table.entityPath}Service.removeById(id)) {
+            return Result.ok().message("${entity} Deleted Successfully");
+        }
+        return Result.error().message("Failed to Delete ${entity}");
+    }
+
+    @DeleteMapping("/del/batch/{ids}")
+    public Result deleteBatch(@PathVariable List<Integer> ids) {
+        if (${table.entityPath}Service.removeByIds(ids)) {
+            return Result.ok().message("${entity}s Deleted Successfully");
+        }
+        return Result.error().message("Failed to Batch Delete ${entity}s");
+    }
+
+    @GetMapping("/page")
+    public Result getPage(@RequestParam Integer pageNum,
+                          @RequestParam Integer pageSize) {
+        QueryWrapper<${entity}> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("id");
+        Page<${entity}> page = ${table.entityPath}Service.page(new Page<>(pageNum, pageSize), queryWrapper);
+        return Result.ok().data("page", page).message("Paged ${entity} List");
+    }
+}
+#end

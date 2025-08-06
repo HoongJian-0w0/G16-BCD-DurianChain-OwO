@@ -1,0 +1,199 @@
+/* global.scss */
+
+/* =======================================
+   1. Root Variables
+======================================= */
+:root {
+  /* Colors */
+  --color-primary: #74c365;
+  --color-secondary: #6c757d;
+  --color-success: #198754;
+  --color-danger: #dc3545;
+  --color-warning: #ffc107;
+  --color-info: #0dcaf0;
+  --color-light: #f8f9fa;
+  --color-dark: #212529;
+
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Typography */
+  --font-family-base: 'Raleway', sans-serif;
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-lg: 18px;
+
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 2rem;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* =======================================
+   2. Base Global Elements
+======================================= */
+html {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  background-color: var(--color-white);
+  color: var(--color-dark);
+  scroll-behavior: smooth;
+}
+
+body {
+  line-height: 1.5;
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+/* Paragraphs */
+p {
+  margin-bottom: 1rem;
+}
+
+/* Selection color */
+::selection {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.blue-gradient-btn {
+  background: linear-gradient(90deg, #74c365, #74c365) !important;
+}
+
+.el-pagination {
+  margin-top: 15px;
+}
+
+.el-dropdown-menu__item:hover {
+  background-color: rgba(116, 195, 101, 0.1) !important;
+  color: #74c365 !important;
+}
+
+.el-dropdown-link:hover {
+  color: #74c365 !important; /* your primary green */
+}
+
+.el-sub-menu__title:hover {
+  background-color: rgba(116, 195, 101, 0.1) !important; /* Light green on hover */
+}
+
+.is-opened .el-menu-item:hover {
+  background-color: rgba(116, 195, 101, 0.1) !important; /* Light green on hover */
+  color: #74c365 !important; /* Optional: green text */
+}
+
+.el-button:hover {
+  background-color: rgba(116, 195, 101, 0.1) !important;
+  border-color: #74c365 !important;
+  color: #74c365 !important;
+  outline: none !important;
+}
+
+.el-button--primary {
+  --el-button-text-color: #fff !important;
+  --el-button-bg-color: #74c365 !important;
+  --el-button-border-color: #74c365 !important;
+  --el-button-outline-color: #d6df72 !important;
+  --el-button-active-color: #5fa452 !important; /* darker variant of #74c365 */
+  --el-button-hover-text-color: #fff !important;
+  --el-button-hover-link-text-color: #d6df72 !important;
+  --el-button-hover-bg-color: #d6df72 !important;
+  --el-button-hover-border-color: #d6df72 !important;
+  --el-button-active-bg-color: #5fa452 !important;
+  --el-button-active-border-color: #5fa452 !important;
+  --el-button-disabled-text-color: #fff !important;
+  --el-button-disabled-bg-color: #e7efb2 !important; /* very light version of #d6df72 */
+  --el-button-disabled-border-color: #e7efb2 !important;
+}
+
+.el-button--primary.is-plain {
+  --el-button-text-color: #74c365 !important;
+  --el-button-bg-color: rgba(116, 195, 101, 0.1) !important;  // 10% opacity background
+  --el-button-border-color: #74c365 !important;
+  --el-button-hover-text-color: #74c365 !important;
+  --el-button-hover-bg-color: rgba(116, 195, 101, 0.15) !important;
+  --el-button-hover-border-color: #5fa452 !important;
+  --el-button-active-text-color: #ffffff !important;
+  --el-button-active-bg-color: #5fa452 !important;
+  --el-button-active-border-color: #5fa452 !important;
+  --el-button-disabled-text-color: #b5d8a9 !important;
+  --el-button-disabled-bg-color: rgba(116, 195, 101, 0.06) !important;
+  --el-button-disabled-border-color: #d6df72 !important;
+}
+
+.el-input {
+  --el-input-text-color: #000 !important;
+  --el-input-border: 1px solid #ccc !important;
+  --el-input-hover-border: 1px solid #d6df72 !important;
+  --el-input-focus-border: #74c365 !important;
+  --el-input-transparent-border: 0 0 0 1px transparent inset !important;
+  --el-input-border-color: #ccc !important;
+  --el-input-border-radius: 6px !important;
+  --el-input-bg-color: #fff !important;
+  --el-input-icon-color: #999 !important;
+  --el-input-placeholder-color: #999 !important;
+  --el-input-hover-border-color: #d6df72 !important;
+  --el-input-clear-hover-color: #74c365 !important;
+  --el-input-focus-border-color: #74c365 !important;
+}
+
+.custom-confirm-btn {
+  background-color: #F56C6C !important; // your desired confirm color
+  color: white !important;
+  border: none;
+}
+
+.role-tag {
+  min-width: 60px;
+}
+
+.tag {
+  min-width: 70px;
+}
+
+/*
+.admin-role {
+  background: linear-gradient(90deg, #ff5858, #f857a6) !important;
+  color: white !important;
+}
+
+.user-role {
+  background: linear-gradient(90deg, #00c6ff, #0072ff) !important;
+  color: white !important;
+}*/
