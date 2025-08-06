@@ -13,29 +13,37 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("user")
-public class User implements Serializable {
+@TableName("batch")
+public class Batch implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private String username;
+    private String batchId;
 
-    private String password;
+    private String foodName;
 
-    private String email;
+    private String farmId;
 
-    private String phone;
+    private Integer quantity;
 
-    private String name;
+    private String farmLocation;
 
-    private String role;
+    private String batchImageCid;
 
-    private String walletAddress;
+    private String deliveryDestination;
 
-    private Boolean isApproved;
+    private String status;
+
+    private String farmerAddress;
+
+    private String traderAddress;
+
+    private String logisticsAddress;
+
+    private String txHash;
 
     private LocalDateTime createdTime;
 

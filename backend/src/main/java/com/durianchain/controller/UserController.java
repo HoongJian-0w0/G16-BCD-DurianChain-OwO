@@ -79,5 +79,4 @@ public class UserController {
         Page<User> page = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
         return Result.ok().data("page", page).message("Paged User List");
     }
-
 }

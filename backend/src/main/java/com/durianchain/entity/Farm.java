@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,29 +14,29 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("user")
-public class User implements Serializable {
+@TableName("farm")
+public class Farm implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private String username;
+    private String farmId;
 
-    private String password;
+    private String ownerAddress;
 
-    private String email;
+    private String location;
 
-    private String phone;
+    private BigDecimal latitude;
 
-    private String name;
+    private BigDecimal longitude;
 
-    private String role;
+    private String certificateCid;
 
-    private String walletAddress;
+    private LocalDateTime certificateExpiry;
 
-    private Boolean isApproved;
+    private String txHash;
 
     private LocalDateTime createdTime;
 

@@ -33,7 +33,7 @@ public class CodeGenerator {
                 })
                 .strategyConfig(builder -> {
                     builder
-                            .addInclude("user")
+                            .addInclude("durian")
                             .addTablePrefix("t_", "");
 
                     builder.entityBuilder()

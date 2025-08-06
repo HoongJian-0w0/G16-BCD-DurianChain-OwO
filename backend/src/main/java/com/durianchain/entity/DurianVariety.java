@@ -13,29 +13,21 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("user")
-public class User implements Serializable {
+@TableName("durian_variety")
+public class DurianVariety implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private String username;
-
-    private String password;
-
-    private String email;
-
-    private String phone;
+    private String varietyId;
 
     private String name;
 
-    private String role;
+    private String description;
 
-    private String walletAddress;
-
-    private Boolean isApproved;
+    private String originRegion;
 
     private LocalDateTime createdTime;
 
