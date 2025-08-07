@@ -12,12 +12,12 @@
         <div class="form-fields">
           <!-- Farm ID -->
           <el-form-item label="Farm ID" prop="farmId">
-            <el-input v-model="form.farmId" readonly placeholder="e.g., FARM001" />
+            <el-input v-model="form.farmId" disabled placeholder="e.g., FARM001" />
           </el-form-item>
 
           <!-- Owner Address -->
           <el-form-item label="Owner Address" prop="ownerAddress">
-            <el-input v-model="form.ownerAddress" :disabled="isUpdateMode" placeholder="Wallet address" />
+            <el-input v-model="form.ownerAddress" disabled placeholder="Wallet address" />
           </el-form-item>
 
           <!-- Address -->
@@ -44,8 +44,8 @@
                 :auto-upload="false"
                 :limit="1"
                 :on-change="handleFileChange"
-                :on-remove="handleFileRemove"
                 :file-list="fileList"
+                :show-file-list="false"
             >
               <el-icon><upload-filled /></el-icon>
               <div class="el-upload__text">Drop or click to upload</div>
@@ -53,6 +53,24 @@
                 <div class="el-upload__tip">Only PNG file allowed</div>
               </template>
             </el-upload>
+          </el-form-item>
+
+          <!-- Certificate CID Field -->
+          <el-form-item label="CID" prop="certificateCid">
+            <el-input
+                v-model="form.certificateCid"
+                placeholder="Auto-filled after upload"
+                readonly
+            >
+              <template #append>
+                <el-button
+                    type="danger"
+                    icon="Delete"
+                    @click="handleCIDRemove"
+                    :disabled="!form.certificateCid"
+                />
+              </template>
+            </el-input>
           </el-form-item>
 
           <!-- Certificate Expiry -->
@@ -63,6 +81,7 @@
                 placeholder="Select expiry date"
                 format="YYYY-MM-DD HH:mm"
                 value-format="x"
+                style="width: 100%"
             />
           </el-form-item>
 
@@ -107,16 +126,20 @@ import { UploadFilled } from '@element-plus/icons-vue';
 import type { FormInstance } from 'element-plus';
 
 import { toSolidityTimestamp } from '@/utils/time';
-import type { FarmModel } from '@/api/farmer/FarmModels';
-import { farmRules } from '@/api/farmer/FarmModels';
-import { registerFarm, updateFarmCertificate } from "@/contracts/farmContract";
+import type { FarmModel } from '@/api/farmer/farm/FarmModels';
+import { farmRules } from '@/api/farmer/farm/FarmModels';
+import {getFarmById, registerFarm, updateFarmCertificate} from "@/contracts/farmContract";
 import { generateId } from '@/api/common/IDGen';
+import {useUserStore} from "@/store/user";
+import { uploadToIPFS } from '@/api/common/CIDGen';
 
 const props = defineProps<{
   visible: boolean;
   mode?: 'create' | 'update';
   initialData?: Partial<FarmModel>;
 }>();
+
+const userStore = useUserStore()
 
 const emit = defineEmits(['update:visible', 'submit']);
 
@@ -152,24 +175,6 @@ function copyTxHash() {
   });
 }
 
-// Handle PNG file upload and preview
-function handleFileChange(file: any, fileListArr: any[]) {
-  if (file.raw && file.raw.type !== 'image/png') {
-    message.error('Only PNG files are allowed.');
-    return;
-  }
-
-  certificateFile.value = file.raw;
-  fileList.value = [file];
-  previewUrl.value = URL.createObjectURL(file.raw);
-}
-
-function handleFileRemove(file: any, fileListArr: any[]) {
-  certificateFile.value = null;
-  fileList.value = [];
-  previewUrl.value = '';
-}
-
 async function handleSubmit() {
   if (!formRef.value) return;
 
@@ -179,37 +184,63 @@ async function handleSubmit() {
     return message.error('Please fix the form validation errors.');
   }
 
-  // Step 1: Validate expiry format
-  const rawExpiry = Number(form.certificateExpiry);
-  if (!rawExpiry || isNaN(rawExpiry)) {
-    return message.error('Please select a valid expiry date');
-  }
-
-  const expiry = toSolidityTimestamp(rawExpiry);
-
-  // Step 2: Optional check – expiry must be in the future
-  const now = Math.floor(Date.now() / 1000);
-  if (expiry <= now) {
-    return message.error('Expiry must be in the future');
-  }
-
-  // Step 3: Upload to IPFS (skipped)
-  let certificateCID = 'CID1'; // Placeholder for IPFS CID
-
   try {
+    let certificateCID = '';
+    let expiry = 0;
     let txHash = '';
 
     if (isUpdateMode.value) {
-      // Update Mode
+      const rawExpiry = Number(form.certificateExpiry);
+      if (!rawExpiry || isNaN(rawExpiry)) {
+        return message.error('Please select a valid expiry date');
+      }
+
+      expiry = toSolidityTimestamp(rawExpiry);
+      const now = Math.floor(Date.now() / 1000);
+      if (expiry <= now) {
+        return message.error('Expiry must be in the future');
+      }
+
+      certificateCID = form.certificateCid?.trim();
+      if (!certificateCID) {
+        return message.error('Missing CID. Please upload a certificate.');
+      }
+
+      const currentOnChainData = await getFarmById(form.farmId);
+      const currentCID = currentOnChainData.certificateCID || '';
+      const currentExpiry = Number(currentOnChainData.certificateExpiry || 0);
+
+      if (currentCID === certificateCID && currentExpiry === expiry) {
+        return message.warning('No changes detected. Please update the CID or expiry.');
+      }
+
       txHash = await updateFarmCertificate(form.farmId, certificateCID, expiry);
       message.success('Certificate updated on-chain');
     } else {
-      // Create Mode
+      const rawExpiry = Number(form.certificateExpiry);
+
+      if (rawExpiry && !form.certificateCid?.trim()) {
+        return message.error('Certificate expiry is provided, but CID is missing. Please upload a certificate.');
+      }
+
+      if (form.certificateCid) {
+        certificateCID = form.certificateCid.trim();
+
+        if (!rawExpiry || isNaN(rawExpiry)) {
+          return message.error('Please select a valid expiry date');
+        }
+
+        expiry = toSolidityTimestamp(rawExpiry);
+        const now = Math.floor(Date.now() / 1000);
+        if (expiry <= now) {
+          return message.error('Expiry must be in the future');
+        }
+      }
+
       txHash = await registerFarm(form.farmId, form.location, certificateCID, expiry);
       message.success('Farm registered on-chain');
     }
 
-    // Emit final result to parent for DB saving
     emit('submit', {
       ...form,
       certificateExpiry: expiry,
@@ -225,9 +256,35 @@ async function handleSubmit() {
   }
 }
 
-
 function updateVisible(val: boolean) {
   emit('update:visible', val);
+}
+
+async function handleFileChange(file: any, fileListArr: any[]) {
+  if (file.raw && file.raw.type !== 'image/png') {
+    message.error('Only PNG files are allowed.');
+    return;
+  }
+
+  certificateFile.value = file.raw;
+  fileList.value = [file];
+  previewUrl.value = URL.createObjectURL(file.raw);
+
+  try {
+    const res = await uploadToIPFS(file.raw);
+    form.certificateCid = res.data.cid;
+    message.success('CID uploaded to IPFS');
+  } catch (err: any) {
+    message.error('Failed to upload to IPFS: ' + (err.message || err));
+    form.certificateCid = '';
+  }
+}
+
+function handleCIDRemove() {
+  certificateFile.value = null;
+  fileList.value = [];
+  previewUrl.value = '';
+  form.certificateCid = '';
 }
 
 watch(
@@ -236,7 +293,7 @@ watch(
       if (val) {
         nextTick(async () => {
           if (props.initialData) {
-            // Update mode – fill from existing data
+            // Update mode
             Object.assign(form, {
               id: props.initialData.id || 0,
               farmId: props.initialData.farmId || '',
@@ -248,7 +305,14 @@ watch(
               certificateExpiry: props.initialData.certificateExpiry || '',
               txHash: props.initialData.txHash || '',
             });
+
+            if (form.certificateCid && !previewUrl.value) {
+              previewUrl.value = `https://ipfs.io/ipfs/${form.certificateCid}`;
+            } else {
+              handleCIDRemove();
+            }
           } else {
+            // Create mode
             try {
               const res = await generateId('farm');
               form.farmId = res.data.generatedId;
@@ -257,7 +321,9 @@ watch(
               form.farmId = '';
             }
 
-            form.ownerAddress = '';
+            handleCIDRemove();
+
+            form.ownerAddress = userStore.getWalletAddress || '';
             form.location = '';
             form.latitude = '';
             form.longitude = '';
@@ -265,11 +331,6 @@ watch(
             form.certificateExpiry = '';
             form.txHash = '';
           }
-
-          // Always reset upload state
-          previewUrl.value = '';
-          fileList.value = [];
-          certificateFile.value = null;
         });
       }
     },
@@ -322,5 +383,19 @@ watch(
   color: #999;
   font-size: 14px;
   font-style: italic;
+}
+
+.upload-demo {
+  width: 100%;
+  font-size: 13px;
+  --el-upload-dragger-padding: 10px 0;
+}
+
+.upload-demo .el-upload__text {
+  font-size: 13px;
+}
+
+.upload-demo .el-icon {
+  font-size: 24px;
 }
 </style>

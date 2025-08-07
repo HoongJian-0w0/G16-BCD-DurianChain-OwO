@@ -142,6 +142,40 @@ p {
   --el-button-disabled-border-color: #e7efb2 !important;
 }
 
+.el-textarea__inner {
+  --el-input-text-color: #000 !important;
+  --el-input-bg-color: #fff !important;
+  --el-input-placeholder-color: #999 !important;
+  --el-input-border-color: #ccc !important;
+  --el-input-border-radius: 6px !important;
+  --el-input-hover-border-color: #d6df72 !important;
+  --el-input-focus-border-color: #74c365 !important;
+  --el-input-clear-hover-color: #74c365 !important;
+}
+
+.el-select__wrapper.is-focused {
+  --el-input-border-radius: 6px !important;
+  --el-input-hover-border-color: #d6df72 !important;
+  --el-input-focus-border-color: #74c365 !important;
+  --el-input-clear-hover-color: #74c365 !important;
+
+  box-shadow: 0 0 0 1px var(--el-input-focus-border-color) inset !important;
+}
+
+.el-select-dropdown__item {
+  color: #444 !important;
+  font-size: 14px;
+}
+
+.el-select-dropdown__item.selected {
+  color: #5fa452 !important;
+}
+
+.el-select-dropdown__item:hover {
+  background-color: #f5fbe9 !important;
+  color: #5fa452 !important;
+}
+
 .el-button--primary.is-plain {
   --el-button-text-color: #74c365 !important;
   --el-button-bg-color: rgba(116, 195, 101, 0.1) !important;  // 10% opacity background
@@ -173,27 +207,30 @@ p {
   --el-input-focus-border-color: #74c365 !important;
 }
 
+.el-table {
+  --el-table-bg-color: none !important;
+}
 .custom-confirm-btn {
-  background-color: #F56C6C !important; // your desired confirm color
-  color: white !important;
-  border: none;
+background-color: #F56C6C !important; // your desired confirm color
+color: white !important;
+border: none;
 }
 
 .role-tag {
-  min-width: 60px;
+min-width: 60px;
 }
 
 .tag {
-  min-width: 70px;
+min-width: 70px;
 }
 
 /*
 .admin-role {
-  background: linear-gradient(90deg, #ff5858, #f857a6) !important;
-  color: white !important;
+background: linear-gradient(90deg, #ff5858, #f857a6) !important;
+color: white !important;
 }
 
 .user-role {
-  background: linear-gradient(90deg, #00c6ff, #0072ff) !important;
-  color: white !important;
+background: linear-gradient(90deg, #00c6ff, #0072ff) !important;
+color: white !important;
 }*/

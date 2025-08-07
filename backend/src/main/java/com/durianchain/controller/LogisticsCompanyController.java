@@ -72,10 +72,29 @@ public class LogisticsCompanyController {
     }
 
     @GetMapping("/page")
-    public Result getPage(@RequestParam Integer pageNum,
-                          @RequestParam Integer pageSize) {
+    public Result getPage(
+            @RequestParam Integer pageNum,
+            @RequestParam Integer pageSize,
+            @RequestParam(required = false) String companyId,
+            @RequestParam(required = false) String companyName,
+            @RequestParam(required = false) String ownerAddress) {
+
         QueryWrapper<LogisticsCompany> queryWrapper = new QueryWrapper<>();
+
+        if (companyId != null && !companyId.trim().isEmpty()) {
+            queryWrapper.like("company_id", companyId.trim());
+        }
+
+        if (companyName != null && !companyName.trim().isEmpty()) {
+            queryWrapper.like("company_name", companyName.trim());
+        }
+
+        if (ownerAddress != null && !ownerAddress.trim().isEmpty()) {
+            queryWrapper.eq("owner_address", ownerAddress.trim());
+        }
+
         queryWrapper.orderByDesc("id");
+
         Page<LogisticsCompany> page = logisticsCompanyService.page(new Page<>(pageNum, pageSize), queryWrapper);
         return Result.ok().data("page", page).message("Paged LogisticsCompany List");
     }

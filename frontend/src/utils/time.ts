@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 /**
  * Converts a date input to a Solidity-compatible UNIX timestamp (in seconds).
  * Accepts string (e.g., '2025-08-07 22:30'), number (timestamp), or Date object.
@@ -48,4 +50,14 @@ export function fromSolidityTimestamp(unixSeconds: number): string {
 
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
         `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+
+export function formatDate(raw: string | number) {
+    if (!raw || raw === '-' || raw === 'Invalid Date') return '-';
+
+    const parsed = dayjs(raw);
+    if (!parsed.isValid()) return '-';
+
+    return parsed.format('YYYY-MM-DD HH:mm');
 }

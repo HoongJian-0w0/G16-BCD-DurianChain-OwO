@@ -1,13 +1,5 @@
 import request from '@/utils/request';
-import type { FarmModel } from '@/api/farmer/FarmModels';
-
-interface PageResponse<T> {
-    records: T[];
-    total: number;
-    size: number;
-    current: number;
-    pages: number;
-}
+import type { FarmModel } from '@/api/farmer/farm/FarmModels';
 
 /**
  * Get all farms
@@ -43,6 +35,9 @@ export function updateFarm(data: FarmModel) {
 export const getFarmPage = (params: {
     pageNum: number;
     pageSize: number;
+    owner_address?: string;
+    farmId?: string;
+    location?: string;
 }) => {
     return request.get('/farm/page', { params });
 };

@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import DurianChainABI from "@/contracts/DurianChain.json";
 
-const CONTRACT_ADDRESS = "0x68B1D87F95878fE05B998F19b66F4baba5De1aed";
+const CONTRACT_ADDRESS = "0xf4B146FbA71F41E0592668ffbF264F1D186b2Ca8";
 
 export async function getContract() {
     if (!window.ethereum) throw new Error("MetaMask not found");

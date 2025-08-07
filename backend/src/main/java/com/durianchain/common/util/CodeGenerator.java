@@ -34,12 +34,6 @@ public class CodeGenerator {
                 .strategyConfig(builder -> {
                     builder
                             .addInclude(
-                                    "farm",
-                                    "durian_variety",
-                                    "trader_agency",
-                                    "logistics_company",
-                                    "wallet_tx",
-                                    "batch",
                                     "durian"
                             )
                             .addTablePrefix("t_", "");

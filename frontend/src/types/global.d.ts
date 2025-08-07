@@ -8,6 +8,7 @@ declare global {
 
     interface Window {
         ethereum?: EthereumProvider;
+        _walletListenerAdded?: boolean
     }
 }
 

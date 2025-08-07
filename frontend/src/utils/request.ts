@@ -109,8 +109,8 @@ class Http {
   }
 
   // REST API
-  post<T=Result>(url: string, data?: object): Promise<T> {
-    return this.instance.post(url, data);
+  post<T = Result>(url: string, data?: object, config?: AxiosRequestConfig): Promise<T> {
+    return this.instance.post(url, data, config);
   }
   get<T=Result>(url: string, params?: object): Promise<T> {
     return this.instance.get(url, params);

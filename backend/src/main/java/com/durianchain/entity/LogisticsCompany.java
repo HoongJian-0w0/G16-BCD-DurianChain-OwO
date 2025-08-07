@@ -25,7 +25,7 @@ public class LogisticsCompany implements Serializable {
 
     private String ownerAddress;
 
-    private String location;
+    private String companyName;
 
     private String txHash;
 

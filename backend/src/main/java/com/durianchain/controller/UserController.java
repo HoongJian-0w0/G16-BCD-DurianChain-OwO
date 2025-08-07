@@ -9,6 +9,7 @@ import com.durianchain.exception.ServiceException;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 import com.durianchain.service.IUserService;
 import com.durianchain.entity.User;
@@ -73,10 +74,40 @@ public class UserController {
 
     @GetMapping("/page")
     public Result getPage(@RequestParam Integer pageNum,
-                          @RequestParam Integer pageSize) {
+                          @RequestParam Integer pageSize,
+                          @RequestParam(required = false) String username,
+                          @RequestParam(required = false) String email) {
+
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+
+        // Optional filters
+        if (username != null && !username.isEmpty()) {
+            queryWrapper.like("username", username);
+        }
+        if (email != null && !email.isEmpty()) {
+            queryWrapper.like("email", email);
+        }
+
         queryWrapper.orderByDesc("id");
+
+        // Paginated query
         Page<User> page = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
-        return Result.ok().data("page", page).message("Paged User List");
+
+        // Role counts
+        long adminCount = userService.count(new QueryWrapper<User>().eq("role", "admin"));
+        long farmerCount = userService.count(new QueryWrapper<User>().eq("role", "farmer"));
+        long logisticsCount = userService.count(new QueryWrapper<User>().eq("role", "logistics"));
+        long traderCount = userService.count(new QueryWrapper<User>().eq("role", "trader"));
+
+        // Return combined result
+        return Result.ok()
+                .data("page", page)
+                .data("stats", Map.of(
+                        "admin", adminCount,
+                        "farmer", farmerCount,
+                        "logistics", logisticsCount,
+                        "trader", traderCount
+                ))
+                .message("Paged User List with Role Stats");
     }
 }

@@ -52,7 +52,7 @@ contract DurianChain {
     struct LogisticsCompany {
         string companyId;
         address owner;
-        string location;
+        string companyName;
     }
 
     address public superAdmin;
@@ -67,9 +67,9 @@ contract DurianChain {
     mapping(address => string[]) private batchesByFarmer;           // batchId => Batch
     mapping(string => Transition[]) private batchHistory; // batchId => Transitions
 
-    mapping(address => TraderAgency) private traderAgencies;
-    mapping(string => Transition[]) private agencyHistory; // agencyId => Transition[]
-    mapping(string => address) private agencyIdToOwner;
+    mapping(string => TraderAgency) private traderAgencies;           // agencyId => TraderAgency
+    mapping(address => string[]) private traderAgenciesByOwner;
+    mapping(string => Transition[]) private agencyHistory;                  // agencyId => Transition[]
 
     mapping(string => LogisticsCompany) private logisticsCompanies;            // companyId => company
     mapping(address => string[]) private logisticsByOwner;                     // owner => list of companyIds
@@ -105,25 +105,12 @@ contract DurianChain {
 
     function assignRole(address user, Role role) external onlyAdmin {
         require(user != address(0), "Invalid address");
-        require(role != Role.Unknown, "Cannot assign Unknown role");
-        require(roles[user] == Role.Unknown, "User already has a role");
+        require(user != superAdmin, "Cannot change role of superAdmin");
 
         roles[user] = role;
-
-        if (role == Role.Admin) {
-            isAdmin[user] = true;
-        }
+        isAdmin[user] = (role == Role.Admin);
 
         emit RoleAssigned(user, role);
-    }
-
-    function removeAdmin(address user) external onlySuperAdmin {
-        require(user != superAdmin, "Can't remove super admin");
-        isAdmin[user] = false;
-        if (roles[user] == Role.Admin) {
-            roles[user] = Role.Unknown;
-        }
-        emit AdminRemoved(user);
     }
 
     function getUserRole(address user) external view onlyAdmin returns (Role) {
@@ -160,7 +147,7 @@ contract DurianChain {
         _logFarmTransition(farmId, "Farm Registered", "Farmer registered a new farm", Role.Farmer);
     }
 
-    function getMyFarmIds() external view returns (string[] memory) {
+    function getMyFarmIds() external view onlyRole(Role.Farmer) returns (string[] memory) {
         return farmsByOwner[msg.sender];
     }
 
@@ -233,7 +220,6 @@ contract DurianChain {
         return batchesByFarmer[msg.sender];
     }
 
-
     function updateBatchInfo(
         string memory batchId,
         uint256 newQuantity,
@@ -300,9 +286,9 @@ contract DurianChain {
     ) external onlyRole(Role.Trader) {
         require(bytes(agencyId).length > 0, "Agency ID required");
         require(bytes(agencyName).length > 0, "Agency name required");
-        require(bytes(traderAgencies[msg.sender].agencyId).length == 0, "Already registered");
+        require(bytes(traderAgencies[agencyId].agencyId).length == 0, "Agency ID already exists");
 
-        traderAgencies[msg.sender] = TraderAgency({
+        traderAgencies[agencyId] = TraderAgency({
             agencyId: agencyId,
             owner: msg.sender,
             agencyName: agencyName,
@@ -310,7 +296,7 @@ contract DurianChain {
             exportLicenseExpiry: exportLicenseExpiry
         });
 
-        agencyIdToOwner[agencyId] = msg.sender;
+        traderAgenciesByOwner[msg.sender].push(agencyId);
 
         string memory desc = string(
             abi.encodePacked("Created agency: ", agencyName, ", Export CID: ", exportLicenseCID)
@@ -319,20 +305,18 @@ contract DurianChain {
         _logAgencyTransition(agencyId, "Agency Created", desc, Role.Trader);
     }
 
-    function getMyTraderAgencyId() external view returns (string memory) {
-        TraderAgency storage agency = traderAgencies[msg.sender];
-        require(bytes(agency.agencyId).length > 0, "No agency registered");
-        return agency.agencyId;
+    function getMyTraderAgencyIds() external view onlyRole(Role.Trader) returns (string[] memory) {
+        return traderAgenciesByOwner[msg.sender];
     }
 
     function updateTraderAgencyCertificate(
+        string memory agencyId,
         string memory newExportCID,
         uint256 newExportExpiry
     ) external onlyRole(Role.Trader) {
-        TraderAgency storage agency = traderAgencies[msg.sender];
+        TraderAgency storage agency = traderAgencies[agencyId];
 
-        require(bytes(agency.agencyId).length > 0, "Agency not registered");
-
+        require(agency.owner == msg.sender, "Not your agency");
         require(bytes(newExportCID).length > 0, "Export CID required");
         require(newExportExpiry > block.timestamp, "Expiry must be in the future");
 
@@ -349,7 +333,7 @@ contract DurianChain {
             )
         );
 
-        _logAgencyTransition(agency.agencyId, "Export Certificate Updated", description, Role.Trader);
+        _logAgencyTransition(agencyId, "Export Certificate Updated", description, Role.Trader);
     }
 
     function orderBatch(
@@ -362,9 +346,9 @@ contract DurianChain {
         require(b.status == Status.Created, "Only created batch can be ordered");
         require(bytes(deliveryDestination).length > 0, "Delivery destination required");
 
-        TraderAgency storage agency = traderAgencies[msg.sender];
+        TraderAgency storage agency = traderAgencies[agencyId];
         require(bytes(agency.agencyId).length > 0, "Trader agency not registered");
-        require(keccak256(bytes(agency.agencyId)) == keccak256(bytes(agencyId)), "Not your agency");
+        require(agency.owner == msg.sender, "Not your agency");
 
         if (isExport) {
             require(bytes(agency.exportLicenseCID).length > 0, "Missing export license");
@@ -407,29 +391,36 @@ contract DurianChain {
 
     function registerLogisticsCompany(
         string memory companyId,
-        string memory location
+        string memory companyName
     ) external onlyRole(Role.Logistics) {
         require(bytes(companyId).length > 0, "Company ID required");
-        require(bytes(location).length > 0, "Location required");
+        require(bytes(companyName).length > 0, "Company name required");
         require(bytes(logisticsCompanies[companyId].companyId).length == 0, "Company ID already used");
 
         logisticsCompanies[companyId] = LogisticsCompany({
             companyId: companyId,
             owner: msg.sender,
-            location: location
+            companyName: companyName
         });
 
         logisticsByOwner[msg.sender].push(companyId);
 
-        _logLogisticsTransition(companyId, "Logistics Company Registered", "Logistics provider registered a company", Role.Logistics);
+        _logLogisticsTransition(
+            companyId,
+            "Logistics Company Registered",
+            "Logistics provider registered a company",
+            Role.Logistics
+        );
     }
 
-    function getMyLogisticsCompanyIds() external view returns (string[] memory) {
+    function getMyLogisticsCompanyIds() external view onlyRole(Role.Logistics) returns (string[] memory) {
         return logisticsByOwner[msg.sender];
     }
 
     function collectBatch(string memory batchId) external onlyRole(Role.Logistics) {
         Batch storage b = batches[batchId];
+
+        require(bytes(b.batchId).length > 0, "Batch not found");
         require(b.status == Status.Ordered, "Batch not ready for collection");
 
         b.logistics = msg.sender;
@@ -440,6 +431,8 @@ contract DurianChain {
 
     function confirmDelivery(string memory batchId) external onlyRole(Role.Logistics) {
         Batch storage b = batches[batchId];
+
+        require(bytes(b.batchId).length > 0, "Batch not found");
         require(b.status == Status.Collected, "Batch must be collected first");
 
         b.status = Status.Delivered;
@@ -653,12 +646,15 @@ contract DurianChain {
 
 
     function getTraderAgencyById(string memory agencyId) external view returns (
-        string memory, string memory, address, string memory, uint256
+        string memory,
+        string memory,
+        address,
+        string memory,
+        uint256
     ) {
-        address owner = agencyIdToOwner[agencyId];
-        require(owner != address(0), "Agency not found");
+        TraderAgency storage agency = traderAgencies[agencyId];
+        require(bytes(agency.agencyId).length > 0, "Agency not found");
 
-        TraderAgency storage agency = traderAgencies[owner];
         return (
             agency.agencyId,
             agency.agencyName,
@@ -667,7 +663,6 @@ contract DurianChain {
             agency.exportLicenseExpiry
         );
     }
-
 
     function getFarmById(string memory farmId) external view returns (
         string memory,
@@ -699,10 +694,9 @@ contract DurianChain {
         return (
             company.companyId,
             company.owner,
-            company.location
+            company.companyName
         );
     }
-
 
     function _uintToString(uint v) internal pure returns (string memory) {
         if (v == 0) return "0";

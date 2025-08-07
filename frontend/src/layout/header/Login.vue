@@ -2,45 +2,42 @@
   <el-dropdown size="small">
     <span class="el-dropdown-link">
       <div class="icon-wrapper">
-        <img :src="avatarSrc" alt="User Icon" class="icon" />
+        <img src="@/assets/image/user.svg" alt="User Icon" class="icon" />
       </div>
     </span>
     <template #dropdown>
       <el-dropdown-menu>
         <el-dropdown-item @click="router.push('/user/profile')">
           <el-icon class="login-label-icon"><User /></el-icon>
-          Profile</el-dropdown-item
-        >
+          Profile
+        </el-dropdown-item>
         <el-dropdown-item @click="handleLogout">
           <el-icon class="login-label-icon"><Remove /></el-icon>
-          Logout</el-dropdown-item
-        >
+          Logout
+        </el-dropdown-item>
       </el-dropdown-menu>
     </template>
   </el-dropdown>
 </template>
 
 <script setup lang="ts">
-import userIcon from '@/assets/image/user.svg'
+import { onMounted } from 'vue'
+import { RouterView } from 'vue-router'
 import router from '@/router'
 import message from '@/utils/message'
-import { User, Remove } from '@element-plus/icons-vue'
-
-// import { logout } from '@/api/auth'
-import { useUserStore } from '@/store/user'
+import { useUserStore } from '@/store/user/index'
 
 const userStore = useUserStore()
-const avatarSrc = userStore.getAvatar || userIcon
 
 async function handleLogout() {
-  /*const res = await logout()
-  if (res.success) {
+  try {
     userStore.clearUserInfo()
-    localStorage.clear()
+    localStorage.removeItem('token')
+    message.warning('You have been logged out.')
     await router.push('/login')
-  } else {
-    message.error(res.message)
-  }*/
+  } catch (err) {
+    message.error('Logout failed.')
+  }
 }
 </script>
 

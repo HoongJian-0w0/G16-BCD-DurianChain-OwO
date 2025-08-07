@@ -73,12 +73,30 @@ public class FarmController {
 
     @GetMapping("/page")
     public Result getPage(@RequestParam Integer pageNum,
-                          @RequestParam Integer pageSize
-    ) {
+                          @RequestParam Integer pageSize,
+                          @RequestParam(required = false) String owner_address,
+                          @RequestParam(required = false) String farmId,
+                          @RequestParam(required = false) String location
+                          ) {
 
         QueryWrapper<Farm> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc("id");
+
+        if (owner_address != null && !owner_address.isEmpty()) {
+            queryWrapper.eq("owner_address", owner_address);
+        }
+
+        if (farmId != null && !farmId.isEmpty()) {
+            queryWrapper.eq("farm_id", farmId);
+        }
+
+        if (location != null && !location.isEmpty()) {
+            queryWrapper.eq("location", location);
+        }
+
         Page<Farm> page = farmService.page(new Page<>(pageNum, pageSize), queryWrapper);
         return Result.ok().data("page", page).message("Paged Farm List");
     }
+
+
 }

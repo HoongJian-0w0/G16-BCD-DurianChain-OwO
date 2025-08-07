@@ -12,6 +12,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { breadcrumb: 'Login' },
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/auth/register.vue'),
+    meta: { breadcrumb: 'Register' },
+  },
+  {
     path: '/durianchain',
     component: () => import('@/layout/index.vue'),
     children: [
@@ -36,13 +42,13 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'admin/user-list',
         name: 'AdminUserList',
-        component: () => import('@/views/durianchain/admin/userList.vue'),
+        component: () => import('@/views/durianchain/admin/user/userList.vue'),
         meta: { title: 'User Management', roles: ['admin'] },
       },
       {
         path: 'admin/variety-list',
         name: 'VarietyList',
-        component: () => import('@/views/durianchain/admin/varietyList.vue'),
+        component: () => import('@/views/durianchain/admin/variety/varietyList.vue'),
         meta: { title: 'Variety List', roles: ['admin'] },
       },
 
@@ -82,7 +88,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'logistics/logistics-list',
         name: 'LogisticsList',
-        component: () => import('@/views/durianchain/logistics/logisticsList.vue'),
+        component: () => import('@/views/durianchain/logistics/logisticsCompany/logisticsList.vue'),
         meta: { title: 'Logistics List', roles: ['logistics'] },
       },
       {
@@ -102,7 +108,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'trader/agency-list',
         name: 'AgencyList',
-        component: () => import('@/views/durianchain/trader/agencyList.vue'),
+        component: () => import('@/views/durianchain/trader/agency/agencyList.vue'),
         meta: { title: 'Agency List', roles: ['trader'] },
       },
       {

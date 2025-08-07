@@ -5,7 +5,7 @@
       <el-card class="summary-card light farms-card" shadow="always">
         <div class="summary-content">
           <div class="icon-wrapper info-bg">
-            <el-icon size="32"><Document /></el-icon>
+            <el-icon size="32"><Watermelon /></el-icon>
           </div>
           <div class="summary-info">
             <div class="summary-title">On-Chain Farms</div>
@@ -55,20 +55,26 @@
     </el-form>
 
     <!-- Table -->
-    <el-table :height="tableHeight" :data="tableList" style="width: 100%" size="medium">
+    <el-table :height="`calc(100vh - 330px)`"   :data="tableList" style="width: 100%;" size="medium">
       <el-table-column prop="farmId" label="Farm ID" sortable />
       <el-table-column prop="location" label="Location" sortable />
-      <el-table-column prop="certificateCid" label="Certificate CID" />
+      <el-table-column label="Certificate CID">
+        <template #default="{ row }">
+          {{ formatCid(row.certificateCid) }}
+        </template>
+      </el-table-column>
       <el-table-column label="Certificate Expiry">
         <template #default="{ row }">
           {{ formatDate(row.certificateExpiry) }}
         </template>
       </el-table-column>
-      <el-table-column label="Actions" width="400px">
+      <el-table-column label="Actions">
         <template #default="scope">
-          <el-button icon="View" size="small" plain @click="viewFarm(scope.row)">View</el-button>
-          <el-button icon="Edit" type="success" size="small" plain @click="showUpdateDialog(scope.row)">Update</el-button>
-          <el-button icon="Document" type="warning" size="small" plain @click="viewHistory(scope.row.farmId)">History</el-button>
+          <el-space wrap size="small">
+            <el-button icon="View" size="small" plain @click="viewFarm(scope.row)">View</el-button>
+            <el-button icon="Edit" type="success" size="small" plain @click="showUpdateDialog(scope.row)">Update</el-button>
+            <el-button icon="Document" type="warning" size="small" plain @click="viewHistory(scope.row.farmId)">History</el-button>
+          </el-space>
         </template>
       </el-table-column>
     </el-table>
@@ -141,14 +147,23 @@ import dayjs from 'dayjs';
 import message from '@/utils/message';
 import AddFarm from '@/views/durianchain/farmer/farm/addFarm.vue';
 import { getMyFarmIds, getFarmById, getFarmMilestone } from '@/contracts/farmContract';
-import {fromSolidityTimestamp, toSolidityTimestamp} from '@/utils/time';
-import {createFarm, getFarmPage, fetchFarmById, updateFarm} from '@/api/farmer/index';
+import { fromSolidityTimestamp, toSolidityTimestamp, formatDate } from '@/utils/time';
+import { createFarm, getFarmPage, fetchFarmById, updateFarm } from '@/api/farmer/farm';
+import { useUserStore } from '@/store/user/index'
+
+const userStore = useUserStore();
 
 const tableHeight = ref(400);
 const tableList = ref<any[]>([]);
 const total = ref(0);
 const onChainStats = reactive({ total: 0, active: 0, expired: 0 });
-const searchParams = reactive({ pageNum: 1, pageSize: 10, farmId: '', location: '' });
+const searchParams = reactive({
+  pageNum: 1,
+  pageSize: 10,
+  owner_address: userStore.getWalletAddress,
+  farmId: '',
+  location: ''
+})
 const dialogVisible = ref(false);
 const dialogMode = ref<'create' | 'update'>('create');
 const dialogFormData = ref<any>(null);
@@ -227,12 +242,12 @@ async function fetchOnChainStats() {
   try {
     const ids = await getMyFarmIds();
     if (!ids || ids.length === 0) {
-      Object.assign(onChainStats, {total: 0, active: 0, expired: 0});
+      Object.assign(onChainStats, { total: 0, active: 0, expired: 0 });
       return;
     }
 
     const farms = await Promise.all(ids.map(id => getFarmById(id)));
-    const now = dayjs().unix(); // current time in seconds
+    const now = dayjs().unix();
 
     let active = 0;
     let expired = 0;
@@ -240,13 +255,16 @@ async function fetchOnChainStats() {
     farms.forEach(f => {
       try {
         const expiry = toSolidityTimestamp(f.certificateExpiry);
+
+        if (expiry === 0) return;
+
         if (expiry > now) {
           active++;
         } else {
           expired++;
         }
       } catch {
-        expired++; // treat invalid or missing expiry as expired
+        // optional: skip if parsing fails instead of counting as expired
       }
     });
 
@@ -258,9 +276,8 @@ async function fetchOnChainStats() {
   }
 }
 
-function formatDate(raw: string | number) {
-  if (!raw) return '-';
-  return dayjs(raw).format('YYYY-MM-DD HH:mm'); // removes the T
+function formatCid(cid: string | null | undefined) {
+  return cid && cid.trim() !== '' ? cid : '-';
 }
 
 function handleSearch() {
@@ -309,30 +326,26 @@ async function showUpdateDialog(row: any) {
 
 async function handleDialogSubmit(data: any) {
   try {
+    const payload: any = {
+      farmId: data.farmId,
+      ownerAddress: data.ownerAddress,
+      location: data.location,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      txHash: data.txHash,
+    };
+
+    const expiryUnix = Number(data.certificateExpiry);
+    if (!isNaN(expiryUnix) && expiryUnix > 0) {
+      payload.certificateExpiry = dayjs(expiryUnix * 1000).format('YYYY-MM-DDTHH:mm:ss');
+      payload.certificateCid = data.certificateCid;
+    }
+
     if (dialogMode.value === 'create') {
-      await createFarm({
-        farmId: data.farmId,
-        ownerAddress: data.ownerAddress,
-        location: data.location,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        certificateCid: data.certificateCid,
-        certificateExpiry: dayjs(data.certificateExpiry * 1000).format('YYYY-MM-DDTHH:mm:ss'),
-        txHash: data.txHash,
-      });
+      await createFarm(payload);
       message.success('Farm registered and saved to DB');
     } else {
-      await updateFarm({
-        id: data.id,
-        farmId: data.farmId,
-        ownerAddress: data.ownerAddress,
-        location: data.location,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        certificateCid: data.certificateCid,
-        certificateExpiry: new Date(Number(data.certificateExpiry)).toISOString(),
-        txHash: data.txHash,
-      });
+      await updateFarm({ id: data.id, ...payload });
       message.success('Farm updated in DB');
     }
 

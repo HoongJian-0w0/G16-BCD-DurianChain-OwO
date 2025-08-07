@@ -1,4 +1,3 @@
-/*
 package com.durianchain.controller;
 
 import com.durianchain.common.result.Result;
@@ -28,8 +27,7 @@ public class AuthController {
     @PostMapping("/login")
     public Result login(@RequestBody LoginDTO loginDTO) {
         LoginVO loginVO = authService.authenticate(loginDTO);
-        return Result.ok().message("Login successful").data("login", loginVO);
+        return Result.ok().message("Login successful").data("user", loginVO);
     }
 
 }
-*/

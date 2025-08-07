@@ -1,4 +1,3 @@
-/*
 package com.durianchain.service.impl;
 
 import com.alibaba.fastjson.JSON;
@@ -102,10 +101,9 @@ public class IAuthServiceImpl implements IAuthService {
         vo.setUsername(user.getUsername());
         vo.setName(user.getName());
         vo.setRole(user.getRole());
-        vo.setRole(user.getWalletAddress());
+        vo.setWallet(user.getWalletAddress());
 
         return vo;
     }
 
 }
-*/

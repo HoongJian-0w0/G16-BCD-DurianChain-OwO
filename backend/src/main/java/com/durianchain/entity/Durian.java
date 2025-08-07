@@ -31,6 +31,10 @@ public class Durian implements Serializable {
 
     private String batchId;
 
+    private String varietyId;
+
+    private String walletAddress;
+
     private Integer scanCount;
 
     private Boolean onChain;

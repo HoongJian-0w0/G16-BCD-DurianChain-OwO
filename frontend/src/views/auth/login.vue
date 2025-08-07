@@ -10,7 +10,7 @@
             :label-position="'top'"
             label-width="100px"
             :model="loginForm"
-            :rules="formRules"
+            :rules="loginRules"
             ref="formDataRef"
             @submit.prevent
             @keydown.enter.prevent="handleLogin"
@@ -34,7 +34,7 @@
             <h4 class="login-label">MetaMask Wallet</h4>
           </div>
 
-          <el-form-item>
+          <el-form-item prop="wallet">
             <el-button
                 type="default"
                 @click="handleConnectWallet"
@@ -52,8 +52,8 @@
           <el-form-item>
             <el-button type="primary" @click="handleLogin"> Login </el-button>
           </el-form-item>
-          <a class="login-forgot-password" @click="router.push('/register')"
-          >Forgot password?</a
+          <a class="login-register" @click="router.push('/register')"
+          >Not a user yet? Register Now</a
           >
         </el-form>
       </div>
@@ -62,88 +62,26 @@
 </template>
 
 <script lang="ts" setup>
-import { User, Lock, Ticket } from '@element-plus/icons-vue'
-import { reactive, ref, onMounted, onUnmounted, computed } from 'vue'
-/*import { login, fetchCaptcha, formRules } from '@/api/auth/index.ts'*/
+import { User, Lock, Wallet } from '@element-plus/icons-vue'
+import { reactive, ref, computed, onMounted, onUnmounted } from 'vue'
 import type { FormInstance } from 'element-plus'
-import message from '@/utils/message'
 import router from '@/router'
-/*import type { loginModel } from '@/api/auth/AuthModel.ts'
-import { getUserInfo } from '@/api/user'
-import { useUserStore } from '@/store/user/index.ts'*/
+import message from '@/utils/message'
+import { useUserStore } from '@/store/user/index'
+import {loginRules, type LoginDTO, LoginVO} from '@/api/auth/AuthModels'
+import {login} from "@/api/auth";
+
+const userStore = useUserStore();
 
 const walletAddress = ref<string | null>(null)
-
 const formDataRef = ref<FormInstance | null>(null)
-let captchaTimer: ReturnType<typeof setTimeout> | null = null
 
-const loginForm = reactive<any>({
+// Reactive form model using LoginDTO interface
+const loginForm = reactive<LoginDTO>({
   username: '',
   password: '',
-  verifyCode: '',
-  captchaUUID: '',
+  wallet: ''
 })
-/*const loginForm = reactive<loginModel>({
-  username: '',
-  password: '',
-  walletAddress: '',
-})*/
-
-async function handleLogin() {
-  /*if (!formDataRef.value) return
-
-  formDataRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      try {
-        const res = await login(loginForm)
-
-        if (res.success) {
-          message.success(res.message + ", Welcome, " + res.data.user.username || 'Login successful')
-          localStorage.setItem('token', res.data.user.token)
-
-          const userInfoRes = await getUserInfo()
-          if (userInfoRes.success) {
-            const userStore = useUserStore()
-            userStore.setUserInfo(userInfoRes.data.user)
-          } else {
-            message.error('Failed to fetch user info.')
-          }
-
-          await router.push('/dashboard').catch(err => console.log(err))
-        }
-      } catch (err: any) {
-        if (err.code !== 400) {
-          await getCaptcha()
-        }
-      }
-    } else {
-      message.error('Login failed. Please fill in all the blank.')
-    }
-  })*/
-}
-
-const handleConnectWallet = async () => {
-  try {
-    if (!window.ethereum) {
-      message.error('MetaMask is not installed.')
-      return
-    }
-
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    if (accounts.length > 0) {
-      walletAddress.value = accounts[0]
-      message.success(`Connected: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`)
-    }
-  } catch (err: any) {
-    if (err.code === 4001) {
-      message.error('Connection request rejected.')
-    } else if (err.code === -32002) {
-      message.warning('Connection request already pending. Open MetaMask.')
-    } else {
-      message.error('MetaMask connection failed or cancelled.')
-    }
-  }
-}
 
 const greeting = computed(() => {
   const hour = new Date().getHours()
@@ -153,13 +91,61 @@ const greeting = computed(() => {
   return 'Welcome!'
 })
 
-onMounted(() => {
-  /*getCaptcha()*/
-})
+const handleConnectWallet = async () => {
+  try {
+    if (!window.ethereum) {
+      message.error('MetaMask is not installed.')
+      return
+    }
 
-onUnmounted(() => {
-  if (captchaTimer) clearTimeout(captchaTimer)
-})
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+
+    if (accounts.length > 0) {
+      walletAddress.value = accounts[0]
+      loginForm.wallet = accounts[0]
+      message.success(`Connected: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`)
+    }
+  } catch (err: any) {
+    if (err.code === 4001) {
+      message.error('Connection request rejected.')
+    } else if (err.code === -32002) {
+      message.warning('Connection already pending. Open MetaMask.')
+    } else {
+      message.error('MetaMask connection failed.')
+    }
+  }
+}
+
+const handleLogin = async () => {
+  if (!formDataRef.value) return
+
+  await formDataRef.value.validate(async (valid: boolean) => {
+    if (!valid) {
+      message.error('Please complete all fields before login.')
+      return
+    }
+
+    try {
+      const res = await login(loginForm)
+      const userData: LoginVO = res.data.user
+
+      localStorage.setItem('token', userData.token)
+
+      userStore.setUserInfo({
+        id: userData.id,
+        username: userData.username,
+        name: userData.name,
+        avatar: '',
+        walletAddress: userData.wallet,
+        role: userData.role
+      })
+
+      message.success(`Logged in as ${loginForm.username}`)
+      router.push('/durianchain')
+    } catch (error) {
+    }
+  })
+}
 </script>
 
 <style lang="scss" scoped>
@@ -246,13 +232,13 @@ onUnmounted(() => {
         }
       }
 
-      .login-forgot-password {
+      .login-register {
         justify-content: center;
         display: flex;
         font-size: 0.8rem;
         color: grey;
+        cursor: pointer;
       }
-
 
       .check-code-panel {
         display: flex;

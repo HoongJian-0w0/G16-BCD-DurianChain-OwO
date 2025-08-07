@@ -6,27 +6,23 @@
     </div>
     <div class="right-header">
       <span class="wlc-name">
-        <span class="gradient-text">Welcome,</span>{{ nickname }}
+        <span class="gradient-text">Welcome,</span>{{ displayName }}
       </span>
       <Login />
     </div>
   </div>
 </template>
 
-<script lang="ts" setup>
-import { computed, ref } from 'vue'
-
+<script setup lang="ts">
+import { computed } from 'vue'
 import Collapse from '@/layout/header/Collapse.vue'
 import Breadcrumb from '@/layout/header/Breadcrumb.vue'
 import Login from '@/layout/header/Login.vue'
-import { useUserStore } from '@/store/user'
+import { useUserStore } from '@/store/user/index'
 
-const userStore = useUserStore();
-const nickname = computed(() => {
-  return userStore.getNickName
-})
+const userStore = useUserStore()
 
-
+const displayName = computed(() => userStore.name || 'Guest')
 </script>
 
 <style lang="scss" scoped>

@@ -6,6 +6,7 @@ import com.durianchain.common.result.Result;
 import com.durianchain.common.result.ResultCode;
 import com.durianchain.exception.ServiceException;
 
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
@@ -73,10 +74,42 @@ public class DurianController {
 
     @GetMapping("/page")
     public Result getPage(@RequestParam Integer pageNum,
-                          @RequestParam Integer pageSize) {
+                          @RequestParam Integer pageSize,
+                          @RequestParam(required = false) String durianId,
+                          @RequestParam(required = false) String farmId,
+                          @RequestParam(required = false) String batchId,
+                          @RequestParam(required = false) String varietyId,
+                          @RequestParam(required = false) String status,
+                          @RequestParam(required = false) Boolean onChain,
+                          @RequestParam(required = false) String walletAddress) {
+
         QueryWrapper<Durian> queryWrapper = new QueryWrapper<>();
+
+        if (StringUtils.hasText(durianId)) {
+            queryWrapper.like("durian_id", durianId);
+        }
+        if (StringUtils.hasText(farmId)) {
+            queryWrapper.eq("farm_id", farmId);
+        }
+        if (StringUtils.hasText(batchId)) {
+            queryWrapper.eq("batch_id", batchId);
+        }
+        if (StringUtils.hasText(varietyId)) {
+            queryWrapper.eq("variety_id", varietyId);
+        }
+        if (StringUtils.hasText(status)) {
+            queryWrapper.eq("status", status);
+        }
+        if (onChain != null) {
+            queryWrapper.eq("on_chain", onChain);
+        }
+        if (StringUtils.hasText(walletAddress)) {
+            queryWrapper.eq("wallet_address", walletAddress);
+        }
+
         queryWrapper.orderByDesc("id");
+
         Page<Durian> page = durianService.page(new Page<>(pageNum, pageSize), queryWrapper);
-        return Result.ok().data("page", page).message("Paged Durian List");
+        return Result.ok().data("page", page).message("Paged Durian List with Filters");
     }
 }

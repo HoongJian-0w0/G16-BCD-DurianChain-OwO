@@ -72,11 +72,31 @@ public class TraderAgencyController {
     }
 
     @GetMapping("/page")
-    public Result getPage(@RequestParam Integer pageNum,
-                          @RequestParam Integer pageSize) {
+    public Result getPage(
+            @RequestParam Integer pageNum,
+            @RequestParam Integer pageSize,
+            @RequestParam(required = false) String agencyId,
+            @RequestParam(required = false) String agencyName,
+            @RequestParam(required = false) String ownerAddress) {
+
         QueryWrapper<TraderAgency> queryWrapper = new QueryWrapper<>();
+
+        if (agencyId != null && !agencyId.trim().isEmpty()) {
+            queryWrapper.like("agency_id", agencyId.trim());
+        }
+
+        if (agencyName != null && !agencyName.trim().isEmpty()) {
+            queryWrapper.like("agency_name", agencyName.trim());
+        }
+
+        if (ownerAddress != null && !ownerAddress.trim().isEmpty()) {
+            queryWrapper.eq("owner_address", ownerAddress.trim());
+        }
+
         queryWrapper.orderByDesc("id");
+
         Page<TraderAgency> page = traderAgencyService.page(new Page<>(pageNum, pageSize), queryWrapper);
         return Result.ok().data("page", page).message("Paged TraderAgency List");
     }
+
 }

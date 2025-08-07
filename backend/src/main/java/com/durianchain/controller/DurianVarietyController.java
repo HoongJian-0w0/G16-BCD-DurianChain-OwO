@@ -73,9 +73,27 @@ public class DurianVarietyController {
 
     @GetMapping("/page")
     public Result getPage(@RequestParam Integer pageNum,
-                          @RequestParam Integer pageSize) {
+                          @RequestParam Integer pageSize,
+                          @RequestParam(required = false) String varietyId,
+                          @RequestParam(required = false) String name,
+                          @RequestParam(required = false) String originRegion) {
+
         QueryWrapper<DurianVariety> queryWrapper = new QueryWrapper<>();
+
+        if (varietyId != null && !varietyId.isEmpty()) {
+            queryWrapper.like("variety_id", varietyId);
+        }
+
+        if (name != null && !name.isEmpty()) {
+            queryWrapper.like("name", name);
+        }
+
+        if (originRegion != null && !originRegion.isEmpty()) {
+            queryWrapper.like("origin_region", originRegion);
+        }
+
         queryWrapper.orderByDesc("id");
+
         Page<DurianVariety> page = durianVarietyService.page(new Page<>(pageNum, pageSize), queryWrapper);
         return Result.ok().data("page", page).message("Paged DurianVariety List");
     }
