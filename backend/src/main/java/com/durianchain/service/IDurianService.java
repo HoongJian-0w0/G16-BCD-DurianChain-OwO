@@ -8,4 +8,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IDurianService extends IService<Durian> {
 
+    boolean releaseByBatchId(String batchId);
+
 }

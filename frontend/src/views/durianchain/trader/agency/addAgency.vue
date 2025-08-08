@@ -112,7 +112,7 @@ import {
   createTraderAgency,
   updateTraderAgencyCertificate,
   getTraderAgencyById
-} from '@/contracts/agencyContract';
+} from '@/contracts/trader/agencyContract';
 import { toSolidityTimestamp } from '@/utils/time';
 
 const props = defineProps<{

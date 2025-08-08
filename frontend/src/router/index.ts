@@ -94,7 +94,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'logistics/parcel-list',
         name: 'ParcelList',
-        component: () => import('@/views/durianchain/logistics/parcelList.vue'),
+        component: () => import('@/views/durianchain/logistics/parcel/parcelList.vue'),
         meta: { title: 'Parcel List', roles: ['logistics'] },
       },
 
@@ -114,7 +114,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'trader/order-list',
         name: 'OrderList',
-        component: () => import('@/views/durianchain/trader/orderList.vue'),
+        component: () => import('@/views/durianchain/trader/order/orderList.vue'),
         meta: { title: 'Order List', roles: ['trader'] },
       },
     ],

@@ -63,7 +63,6 @@
       <el-form-item>
         <el-button icon="Search" @click="handleSearch">Search</el-button>
         <el-button icon="Close" type="danger" plain @click="handleReset">Clear</el-button>
-        <el-button icon="Plus" type="primary" @click="showAddDialog">Add</el-button>
       </el-form-item>
     </el-form>
 

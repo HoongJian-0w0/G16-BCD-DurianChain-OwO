@@ -146,7 +146,7 @@ import { ref, reactive, onMounted, nextTick } from 'vue';
 import dayjs from 'dayjs';
 import message from '@/utils/message';
 import AddFarm from '@/views/durianchain/farmer/farm/addFarm.vue';
-import { getMyFarmIds, getFarmById, getFarmMilestone } from '@/contracts/farmContract';
+import { getMyFarmIds, getFarmById, getFarmMilestone } from '@/contracts/farmer/farmContract';
 import { fromSolidityTimestamp, toSolidityTimestamp, formatDate } from '@/utils/time';
 import { createFarm, getFarmPage, fetchFarmById, updateFarm } from '@/api/farmer/farm';
 import { useUserStore } from '@/store/user/index'

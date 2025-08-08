@@ -69,7 +69,7 @@ import { ref, reactive, onMounted } from 'vue';
 import message from '@/utils/message';
 import { useUserStore } from '@/store/user';
 import { getLogisticsCompanyPage, createLogisticsCompany } from '@/api/logistics/logisticsCompany';
-import { getMyLogisticsCompanyIds } from '@/contracts/logisticsCompanyContract';
+import { getMyLogisticsCompanyIds } from '@/contracts/logistics/logisticsCompanyContract';
 import AddLogistics from '@/views/durianchain/logistics/logisticsCompany/addLogistics.vue';
 
 const showAddDialog = ref(false);

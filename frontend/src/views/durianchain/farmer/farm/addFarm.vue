@@ -128,7 +128,7 @@ import type { FormInstance } from 'element-plus';
 import { toSolidityTimestamp } from '@/utils/time';
 import type { FarmModel } from '@/api/farmer/farm/FarmModels';
 import { farmRules } from '@/api/farmer/farm/FarmModels';
-import {getFarmById, registerFarm, updateFarmCertificate} from "@/contracts/farmContract";
+import {getFarmById, registerFarm, updateFarmCertificate} from "@/contracts/farmer/farmContract";
 import { generateId } from '@/api/common/IDGen';
 import {useUserStore} from "@/store/user";
 import { uploadToIPFS } from '@/api/common/CIDGen';

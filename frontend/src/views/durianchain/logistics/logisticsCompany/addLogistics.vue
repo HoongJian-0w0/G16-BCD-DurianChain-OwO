@@ -47,7 +47,7 @@ import type { FormInstance } from 'element-plus';
 import { ElMessage as message } from 'element-plus';
 import { useUserStore } from '@/store/user';
 import { generateId } from '@/api/common/IDGen';
-import { registerLogisticsCompany } from '@/contracts/logisticsCompanyContract';
+import { registerLogisticsCompany } from '@/contracts/logistics/logisticsCompanyContract';
 import { type LogisticsCompany, logisticsCompanyRules } from '@/api/logistics/logisticsCompany/logisticsCompanyModels';
 
 const props = defineProps<{

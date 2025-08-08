@@ -3,9 +3,8 @@
     <el-sub-menu v-if="menu.children && menu.children.length > 0" :index="menu.path">
       <template #title>
         <div
-          class="submenu-title"
-          :class="{ active: isActive(menu.path) }"
-          @click.stop="handleClick(menu)"
+            class="submenu-title"
+            :class="{ active: isActive(menu.path) }"
         >
           <el-icon>
             <component :is="menu.meta.icon" />
@@ -16,7 +15,7 @@
       <menu-item :menuList="menu.children" />
     </el-sub-menu>
 
-    <el-menu-item v-else :index="menu.path">
+    <el-menu-item v-else :index="menu.path" @click="handleClick(menu)">
       <el-icon>
         <component :is="menu.meta.icon" />
       </el-icon>
@@ -30,7 +29,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { useMenuStore } from '@/store/menu'
 
-defineProps(['menuList'])
+defineProps<{ menuList: any[] }>()
 
 const router = useRouter()
 const route = useRoute()

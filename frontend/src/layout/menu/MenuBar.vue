@@ -2,11 +2,11 @@
   <MenuLogo />
   <div class="menubar">
     <el-menu
-      :default-active="defaultActive"
-      class="el-menu-vertical-demo"
-      :collapse="isCollapse"
-      unique-opened
-      router
+        :default-active="defaultActive"
+        class="el-menu-vertical-demo"
+        :collapse="isCollapse"
+        unique-opened
+        router
     >
       <MenuItem :menuList="menuList" />
     </el-menu>
@@ -14,23 +14,52 @@
 </template>
 
 <script lang="ts" setup>
-import MenuItem from '@/layout/menu/MenuItem.vue'
-import MenuLogo from '@/layout/menu/MenuLogo.vue'
-import { ref, reactive, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import { useMenuStore } from '@/store/menu'
+import { useUserStore } from '@/store/user'
+import MenuItem from '@/layout/menu/MenuItem.vue'
+import MenuLogo from '@/layout/menu/MenuLogo.vue'
 
 const store = useMenuStore()
 const route = useRoute()
+const userStore = useUserStore()
 
 const isCollapse = computed(() => store.getCollapse)
+const defaultActive = computed(() => route.path)
+const userRole = computed(() => userStore.getRole)
 
-const defaultActive = computed(() => {
-  const { path } = route
-  return path
-})
+// Bypass To View All
+const bypassForDebug = true;
 
-let menuList = reactive([
+function hasAccess(menu: any): boolean {
+  if (bypassForDebug) return true;
+
+  const meta = menu.meta || {}
+  const allowedRoles = meta.roles || []
+  if (meta.bypass === true) return true // individual bypass
+
+  return allowedRoles.length === 0 || allowedRoles.includes(userRole.value)
+}
+function filterMenuByRole(menuList: any[]): any[] {
+  return menuList
+      .filter(menu => hasAccess(menu))
+      .map(menu => {
+        if (menu.children && menu.children.length > 0) {
+          const filteredChildren = filterMenuByRole(menu.children)
+          if (filteredChildren.length > 0) {
+            return { ...menu, children: filteredChildren }
+          } else {
+            return null
+          }
+        }
+        return menu
+      })
+      .filter(Boolean)
+}
+
+// Original menu list
+const fullMenuList = [
   {
     path: '/durianchain',
     component: '/views/dashboard',
@@ -38,11 +67,9 @@ let menuList = reactive([
     meta: {
       title: 'Dashboard',
       icon: 'HomeFilled',
-      roles: [''],
+      roles: [],
     },
   },
-
-  // Admin Panel
   {
     path: '/durianchain/admin/dashboard',
     component: 'Layout',
@@ -75,8 +102,6 @@ let menuList = reactive([
       },
     ],
   },
-
-  // Farmer Panel
   {
     path: '/durianchain/farmer/dashboard',
     component: 'Layout',
@@ -119,8 +144,6 @@ let menuList = reactive([
       },
     ],
   },
-
-  // Trader Panel
   {
     path: '/durianchain/trader/dashboard',
     component: 'Layout',
@@ -153,8 +176,6 @@ let menuList = reactive([
       },
     ],
   },
-
-  // Logistics Panel
   {
     path: '/durianchain/logistics/dashboard',
     component: 'Layout',
@@ -184,10 +205,12 @@ let menuList = reactive([
           icon: 'Van',
           roles: ['logistics'],
         },
-      }
+      },
     ],
   },
-])
+]
+
+const menuList = computed(() => filterMenuByRole(fullMenuList))
 </script>
 
 <style lang="scss" scoped>
@@ -226,10 +249,7 @@ let menuList = reactive([
   -webkit-text-fill-color: transparent;
 }
 
-:deep(.is-opened .el-menu-item) {
-  background-color: #fff !important;
-}
-
+:deep(.is-opened .el-menu-item),
 :deep(.el-menu-item:hover) {
   background-color: #fff !important;
 }

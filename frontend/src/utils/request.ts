@@ -3,6 +3,7 @@ import axios, {
   type AxiosResponse,
   type AxiosRequestConfig,
 } from 'axios'
+import * as qs from 'qs'
 import message from '@/utils/message'
 import router from '@/router'
 
@@ -16,7 +17,9 @@ export interface Result<T = any> {
 const config = {
   baseURL: 'http://localhost:9090',
   timeout: 5000,
+  paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' }),
 }
+
 
 class Http {
   private instance: AxiosInstance

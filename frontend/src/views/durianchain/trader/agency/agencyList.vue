@@ -143,7 +143,7 @@ import dayjs from 'dayjs';
 import message from '@/utils/message';
 import { formatDate, toSolidityTimestamp } from '@/utils/time';
 import {createAgency, getAgencyPage, updateAgency} from '@/api/trader/agency/index';
-import { getTraderAgencyById, getTraderAgencyMilestone, getMyTraderAgencyIds } from '@/contracts/agencyContract';
+import { getTraderAgencyById, getTraderAgencyMilestone, getMyTraderAgencyIds } from '@/contracts/trader/agencyContract';
 import { useUserStore } from '@/store/user';
 import AddAgency from '@/views/durianchain/trader/agency/addAgency.vue';
 

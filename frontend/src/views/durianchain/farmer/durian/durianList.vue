@@ -30,13 +30,16 @@
     <div class="filter-bar">
       <el-form :inline="true" :model="searchParams" size="small" class="filter-form">
         <div class="search-fields-group">
-          <el-form-item label="Please select farm: " class="searchField" style="font-weight: bold;">
+          <el-form-item class="searchField">
             <el-select
                 v-model="searchParams.farmId"
                 placeholder="Select a farm:"
                 style="width: 220px"
                 clearable
             >
+              <template #prefix>
+                <el-icon><Watermelon /></el-icon>
+              </template>
               <el-option
                   v-for="farm in farmOptions"
                   :key="farm.farmId"
@@ -48,7 +51,15 @@
           </el-form-item>
 
           <el-form-item class="searchField">
-            <el-select v-model="searchParams.varietyId" placeholder="Select Variety" clearable style="width: 200px">
+            <el-select
+                v-model="searchParams.varietyId"
+                placeholder="Select Variety"
+                clearable
+                style="width: 200px"
+            >
+              <template #prefix>
+                <el-icon><Collection /></el-icon>
+              </template>
               <el-option
                   v-for="v in varietyOptions"
                   :key="v.varietyId"
@@ -182,7 +193,7 @@ import { ref, reactive, onMounted } from 'vue';
 import message from '@/utils/message';
 import {getDurianPage, createDurian, deleteDurian} from '@/api/farmer/durian/index';
 import { getAllVarieties } from '@/api/admin/variety';
-import { getMyFarmIds, getFarmById } from '@/contracts/farmContract';
+import { getMyFarmIds, getFarmById } from '@/contracts/farmer/farmContract';
 import { useUserStore } from '@/store/user';
 import AddDurian from './addDurian.vue';
 import { verifyImageHash } from '@/utils/cloudinaryUploader';

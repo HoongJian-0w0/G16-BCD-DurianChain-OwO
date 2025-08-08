@@ -68,7 +68,7 @@ import type { Durian } from '@/api/farmer/durian/DurianModels';
 import { durianRules } from '@/api/farmer/durian/DurianModels';
 import { useUserStore } from '@/store/user';
 import { generateId } from '@/api/common/IDGen/index';
-import { getMyFarmIds, getFarmById } from '@/contracts/farmContract';
+import { getMyFarmIds, getFarmById } from '@/contracts/farmer/farmContract';
 import { getAllVarieties } from '@/api/admin/variety';
 import { ElMessage } from 'element-plus';
 import { UploadFilled } from '@element-plus/icons-vue';

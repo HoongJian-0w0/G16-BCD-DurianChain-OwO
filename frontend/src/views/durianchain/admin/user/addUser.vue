@@ -55,7 +55,7 @@ import { ref, watch, computed } from 'vue';
 import type { FormInstance } from 'element-plus';
 import type { UserModel } from '@/api/admin/user/UserModels';
 import { userRules } from '@/api/admin/user/UserModels';
-import {assignUserRole, getUserRole, Role} from "@/contracts/userContract";
+import {assignUserRole, getUserRole, Role} from "@/contracts/admin/userContract";
 import message from "@/utils/message";
 
 // Props and Emits

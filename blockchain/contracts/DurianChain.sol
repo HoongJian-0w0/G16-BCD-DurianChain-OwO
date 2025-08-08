@@ -20,6 +20,8 @@ contract DurianChain {
         address farmer;
         address trader;
         address logistics;
+        string traderAgencyId;
+        string logisticsCompanyId;
         string batchImageCID;
         string deliveryDestination;
         Durian[] durians;
@@ -234,12 +236,10 @@ contract DurianChain {
         require(newQuantity > 0, "Quantity must be > 0");
         require(bytes(newBatchImageCID).length > 0, "Image CID required");
 
-        // Store old values for logging
         uint256 oldQuantity = b.quantity;
         string memory oldCID = b.batchImageCID;
         uint256 oldDurianCount = b.durians.length;
 
-        // Apply changes
         b.quantity = newQuantity;
         b.batchImageCID = newBatchImageCID;
 
@@ -253,13 +253,28 @@ contract DurianChain {
             }
         }
 
-        string memory description = string(
-            abi.encodePacked(
-                "Quantity: ", _uintToString(oldQuantity), " -> ", _uintToString(newQuantity),
-                ", ImageCID: ", oldCID, " -> ", newBatchImageCID,
-                ", Durians: ", _uintToString(oldDurianCount), " -> ", _uintToString(b.durians.length)
-            )
-        );
+        string memory description = "";
+
+        if (oldQuantity != newQuantity) {
+            description = string(
+                abi.encodePacked(description,
+                    "Quantity: ", _uintToString(oldQuantity), " -> ", _uintToString(newQuantity), ", ")
+            );
+        }
+
+        if (keccak256(bytes(oldCID)) != keccak256(bytes(newBatchImageCID))) {
+            description = string(
+                abi.encodePacked(description,
+                    "ImageCID: ", oldCID, " -> ", newBatchImageCID, ", ")
+            );
+        }
+
+        if (oldDurianCount != b.durians.length) {
+            description = string(
+                abi.encodePacked(description,
+                    "Durians: ", _uintToString(oldDurianCount), " -> ", _uintToString(b.durians.length))
+            );
+        }
 
         _logTransition(batchId, "Batch Info Updated", description, Role.Farmer);
     }
@@ -326,9 +341,11 @@ contract DurianChain {
         agency.exportLicenseCID = newExportCID;
         agency.exportLicenseExpiry = newExportExpiry;
 
+        string memory cidDisplay = bytes(oldCID).length > 0 ? oldCID : "N/A";
+
         string memory description = string(
             abi.encodePacked(
-                "CID: ", bytes(oldCID).length > 0 ? oldCID : "N/A", " -> ", newExportCID,
+                "CID: ", cidDisplay, " -> ", newExportCID,
                 ", Expiry: ", _uintToString(oldExpiry), " -> ", _uintToString(newExportExpiry)
             )
         );
@@ -360,6 +377,7 @@ contract DurianChain {
         }
 
         b.trader = msg.sender;
+        b.traderAgencyId = agencyId;
         b.deliveryDestination = deliveryDestination;
         b.status = Status.Ordered;
 
@@ -382,6 +400,7 @@ contract DurianChain {
         require(b.trader == msg.sender, "You did not order this batch");
 
         b.trader = address(0);
+        b.traderAgencyId = "";
         b.status = Status.Created;
 
         _logTransition(batchId, "Order Cancelled", "Trader cancelled the order", Role.Trader);
@@ -417,16 +436,19 @@ contract DurianChain {
         return logisticsByOwner[msg.sender];
     }
 
-    function collectBatch(string memory batchId) external onlyRole(Role.Logistics) {
+    function collectBatch(string memory batchId, string memory logisticsCompanyId) external onlyRole(Role.Logistics) {
         Batch storage b = batches[batchId];
 
         require(bytes(b.batchId).length > 0, "Batch not found");
         require(b.status == Status.Ordered, "Batch not ready for collection");
 
         b.logistics = msg.sender;
+        b.logisticsCompanyId = logisticsCompanyId;
         b.status = Status.Collected;
 
-        _logTransition(batchId, "Batch Collected", "Logistics collected the batch", Role.Logistics);
+        _logTransition(batchId, "Batch Collected", string(
+            abi.encodePacked("Logistics company ", logisticsCompanyId, " collected the batch")
+        ), Role.Logistics);
     }
 
     function confirmDelivery(string memory batchId) external onlyRole(Role.Logistics) {
@@ -434,10 +456,16 @@ contract DurianChain {
 
         require(bytes(b.batchId).length > 0, "Batch not found");
         require(b.status == Status.Collected, "Batch must be collected first");
+        require(b.logistics == msg.sender, "You are not the assigned logistics");
 
         b.status = Status.Delivered;
 
-        _logTransition(batchId, "Batch Delivered", "Logistics delivered the batch", Role.Logistics);
+        _logTransition(
+            batchId,
+            "Batch Delivered",
+            string(abi.encodePacked("Logistics company ", b.logisticsCompanyId, " delivered the batch")),
+            Role.Logistics
+        );
     }
 
     // ---------------- Internal Logging ----------------

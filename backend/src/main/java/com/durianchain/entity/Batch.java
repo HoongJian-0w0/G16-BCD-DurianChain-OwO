@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 
+ * Batch entity matching the DurianChain smart contract
  */
 @Getter
 @Setter
@@ -41,6 +41,10 @@ public class Batch implements Serializable {
 
     private String traderAddress;
 
+    private String traderAgencyId;
+
+    private String logisticsCompanyId;
+
     private String logisticsAddress;
 
     private String txHash;
@@ -48,6 +52,4 @@ public class Batch implements Serializable {
     private LocalDateTime createdTime;
 
     private LocalDateTime updatedTime;
-
-
 }
