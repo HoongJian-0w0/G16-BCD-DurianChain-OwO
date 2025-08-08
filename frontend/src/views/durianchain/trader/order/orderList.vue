@@ -78,6 +78,7 @@
         <el-form-item>
           <el-button icon="Search" @click="handleSearch">Search</el-button>
           <el-button icon="Close" type="danger" plain @click="handleReset">Clear</el-button>
+          <el-button icon="Camera" type="primary" plain @click="handleScanQR">Scan QR</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -211,6 +212,26 @@
       </div>
     </el-drawer>
 
+    <input
+        type="file"
+        id="qr-file-input"
+        accept="image/*"
+        style="display: none"
+        @change="handleQrFile"
+    />
+
+    <el-dialog v-model="qrDialogVisible" title="Scan or Upload QR Code" width="500px" destroy-on-close>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 12px 0;">
+        <div
+            id="qr-reader"
+            style="width: 100%; max-width: 450px; height: 300px; border: 1px solid #ccc; border-radius: 8px;"
+        />
+        <el-button type="primary" plain icon="Upload" @click="switchToFileScan">
+          Upload Image
+        </el-button>
+      </div>
+    </el-dialog>
+
     <!-- Add Order Dialog -->
     <AddOrder
         :visible="addOrderVisible"
@@ -222,7 +243,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue';
+import {ref, reactive, onMounted, watch, nextTick} from 'vue';
 import { getBatchPage, getBatchesByStatus, updateBatch } from '@/api/farmer/batch/index';
 import { cancelOrder } from '@/contracts/trader/orderContract';
 import { getMyTraderAgencyIds } from '@/contracts/trader/agencyContract';
@@ -234,6 +255,11 @@ import AddOrder from '@/views/durianchain/trader/order/addOrder.vue';
 import {cancelDBOrder} from "@/api/trader/order";
 import {getDuriansByBatchId} from "@/api/farmer/durian";
 import {getBatchMilestone} from "@/contracts/farmer/batchContract";
+import { Html5Qrcode } from 'html5-qrcode';
+import { scanQrFromFile, startQrScanner, stopQrScanner } from '@/utils/qrscan';
+
+const qrDialogVisible = ref(false);
+let qrReader: Html5Qrcode | null = null;
 
 const userStore = useUserStore();
 const walletAddress = userStore.walletAddress;
@@ -432,6 +458,49 @@ function handleStatusChange(val: string[]) {
   if (!val || val.length === 0) {
     searchParams.statuses = ['Created'];
   }
+}
+
+function handleScanQR() {
+  qrDialogVisible.value = true;
+
+  nextTick(() => {
+    startQrScanner(
+        'qr-reader',
+        async (decodedText: string) => {
+          qrDialogVisible.value = false;
+          searchParams.batchId = decodedText; // ← Customize this part for each page
+          await fetchTable();                 // ← Customize this part for each page
+          message.success('QR Code Scanned: ' + decodedText);
+        },
+        (err) => {
+          console.warn('QR Scan Error', err);
+        }
+    );
+  });
+}
+
+async function handleQrFile(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  try {
+    const decoded = await scanQrFromFile(file);
+    message.success('QR Code Scanned: ' + decoded);
+    searchParams.batchId = decoded; // ← Customize this part for each page
+    qrDialogVisible.value = false;
+    fetchTable();                  // ← Customize this part for each page
+  } catch (err) {
+    message.error('Image scan failed');
+    console.error(err);
+  } finally {
+    target.value = '';
+  }
+}
+
+function switchToFileScan() {
+  const input = document.getElementById('qr-file-input') as HTMLInputElement;
+  if (input) input.click();
 }
 
 onMounted(() => {

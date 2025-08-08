@@ -96,6 +96,7 @@
         <el-form-item>
           <el-button icon="Search" @click="handleSearch">Search</el-button>
           <el-button icon="Close" type="danger" plain @click="handleReset">Clear</el-button>
+          <el-button icon="Camera" type="primary" plain @click="handleScanQR">Scan QR</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -221,6 +222,39 @@
       </div>
     </el-drawer>
 
+    <!-- Hidden file input -->
+    <input
+        type="file"
+        id="qr-file-input"
+        accept="image/*"
+        style="display: none"
+        @change="handleQrFile"
+    />
+
+    <el-dialog v-model="qrDialogVisible" title="Scan or Upload QR Code" width="500px" destroy-on-close>
+      <!-- Wrapper with column layout -->
+      <div
+          style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 0;
+    "
+      >
+        <!-- Camera Preview -->
+        <div
+            id="qr-reader"
+            style="width: 100%; max-width: 450px; height: 300px; border: 1px solid #ccc; border-radius: 8px;"
+        />
+
+        <!-- Upload Button -->
+        <el-button type="primary" plain icon="Upload" @click="switchToFileScan">
+          Upload Image
+        </el-button>
+      </div>
+    </el-dialog>
+
     <AddParcel
         v-model:visible="addParcelVisible"
         :batch-data="selectedParcelBatch"
@@ -230,7 +264,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue';
+import {ref, reactive, onMounted, watch, nextTick} from 'vue';
 import { getBatchPage, getBatchesByStatus } from '@/api/farmer/batch/index';
 import { getMyLogisticsCompanyIds } from '@/contracts/logistics/logisticsCompanyContract';
 import message from '@/utils/message';
@@ -241,6 +275,11 @@ import { getBatchMilestone } from '@/contracts/farmer/batchContract';
 import AddParcel from './addParcel.vue';
 import {confirmDelivery} from "@/contracts/logistics/parcelContract";
 import {confirmDBDelivery} from "@/api/logistics/parcel";
+import {Html5Qrcode} from "html5-qrcode";
+import {scanQrFromFile, startQrScanner, stopQrScanner} from "@/utils/qrscan";
+
+const qrDialogVisible = ref(false);
+let qrReader: Html5Qrcode | null = null;
 
 const userStore = useUserStore();
 const walletAddress = userStore.walletAddress;
@@ -420,9 +459,52 @@ async function fetchOffChainStatusStats() {
   }
 }
 
+function handleScanQR() {
+  qrDialogVisible.value = true;
+
+  nextTick(() => {
+    startQrScanner(
+        'qr-reader',
+        async (decodedText: string) => {
+          qrDialogVisible.value = false;
+          searchParams.batchId = decodedText;
+          await fetchTable();
+          message.success('QR Code Scanned: ' + decodedText);
+        },
+        (err) => {
+          console.warn('QR Scan Error', err);
+        }
+    );
+  });
+}
+
 function handleStatusChange(val: string[]) {
   if (!val || val.length === 0) {
     searchParams.statuses = ['Ordered'];
+  }
+}
+
+function switchToFileScan() {
+  const input = document.getElementById('qr-file-input') as HTMLInputElement;
+  if (input) input.click();
+}
+
+async function handleQrFile(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  try {
+    const decoded = await scanQrFromFile(file);
+    message.success('QR Code Scanned: ' + decoded);
+    searchParams.batchId = decoded;
+    qrDialogVisible.value = false;
+    fetchTable();
+  } catch (err) {
+    message.error('Image scan failed');
+    console.error(err);
+  } finally {
+    target.value = '';
   }
 }
 

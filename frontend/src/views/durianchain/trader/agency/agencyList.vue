@@ -126,8 +126,28 @@
           <div class="agency-item"><b>Agency ID:</b> {{ viewAgencyData.chain.agencyId }}</div>
           <div class="agency-item"><b>Name:</b> {{ viewAgencyData.chain.agencyName }}</div>
           <div class="agency-item"><b>Owner:</b> {{ viewAgencyData.chain.owner }}</div>
-          <div class="agency-item"><b>Export CID:</b> {{ viewAgencyData.chain.exportLicenseCID }}</div>
-          <div class="agency-item"><b>Expiry:</b> {{ viewAgencyData.chain.exportLicenseExpiry }}</div>
+          <div class="agency-item agency-item-row">
+            <div>
+              <b>Export CID:</b> {{ viewAgencyData.chain.exportLicenseCID || '-' }}
+            </div>
+            <div v-if="viewAgencyData.chain?.exportLicenseCID?.trim()">
+              <el-image
+                  :src="`https://ipfs.io/ipfs/${viewAgencyData.chain.exportLicenseCID}`"
+                  style="width: 100px; height: auto; border: 1px solid #ccc; border-radius: 4px;"
+                  fit="contain"
+                  :preview-src-list="[ `https://ipfs.io/ipfs/${viewAgencyData.chain.exportLicenseCID}` ]"
+                  preview-teleported
+              />
+            </div>
+          </div>
+          <div class="agency-item">
+            <b>Expiry:</b>
+            {{
+              Number(viewAgencyData.chain?.exportLicenseExpiry) > 0
+                  ? new Date(Number(viewAgencyData.chain.exportLicenseExpiry) * 1000).toLocaleString()
+                  : '-'
+            }}
+          </div>
         </div>
       </div>
     </el-dialog>
@@ -403,5 +423,10 @@ onMounted(async () => {
   font-size: 14px;
   word-break: break-word;
 }
-
+.agency-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
 </style>

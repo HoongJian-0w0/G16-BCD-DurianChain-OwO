@@ -97,13 +97,20 @@
           <el-button icon="Search" @click="handleSearch">Search</el-button>
           <el-button icon="Close" type="danger" plain @click="handleReset">Clear</el-button>
           <el-button type="primary" @click="addVisible = true">Add Batch</el-button>
+          <el-button icon="Camera" type="primary" plain @click="handleScanQR">Scan QR</el-button>
         </el-form-item>
       </el-form>
     </div>
 
     <!-- Table -->
     <el-table :data="tableList" :height="`calc(100vh - 350px)`" style="width: 100%;" size="medium">
-      <el-table-column prop="batchId" label="Batch ID" sortable />
+      <el-table-column label="Batch ID" sortable>
+        <template #default="{ row }">
+          <el-link type="primary" @click="showBatchQr(row.batchId)">
+            {{ row.batchId }}
+          </el-link>
+        </template>
+      </el-table-column>
       <el-table-column prop="foodName" label="Food Name" />
       <el-table-column prop="farmId" label="Farm ID" />
       <el-table-column prop="quantity" label="Quantity" />
@@ -226,6 +233,47 @@
       </div>
     </el-drawer>
 
+    <el-dialog
+        v-model="qrVisible"
+        :title="`QR Code for Batch: ${selectedQrBatchId}`"
+        width="300px"
+        center
+    >
+      <div style="text-align: center;">
+        <el-image
+            :src="qrImageUrl"
+            style="width: 200px; height: 200px;"
+            fit="contain"
+        />
+        <p style="margin-top: 12px; font-size: 14px; color: #606266;">
+          {{ selectedQrBatchId }}
+        </p>
+        <el-button type="primary" size="small" @click="downloadQrCode">
+          Download PNG
+        </el-button>
+      </div>
+    </el-dialog>
+
+    <input
+        type="file"
+        id="qr-file-input"
+        accept="image/*"
+        style="display: none"
+        @change="handleQrFile"
+    />
+
+    <el-dialog v-model="qrDialogVisible" title="Scan or Upload QR Code" width="500px" destroy-on-close>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 12px 0;">
+        <div
+            id="qr-reader"
+            style="width: 100%; max-width: 450px; height: 300px; border: 1px solid #ccc; border-radius: 8px;"
+        />
+        <el-button type="primary" plain icon="Upload" @click="switchToFileScan">
+          Upload Image
+        </el-button>
+      </div>
+    </el-dialog>
+
     <!-- Add Batch Dialog -->
     <AddBatch
         ref="addBatchRef"
@@ -246,6 +294,17 @@ import {getMyBatchIds, getBatchById, getBatchMilestone, removeBatch} from '@/con
 import {getDuriansByBatchId, releaseDurians} from "@/api/farmer/durian";
 import dialogConfirm from "@/utils/dialogConfirm";
 import {useUserStore} from "@/store/user";
+import QRCode from 'qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
+import { scanQrFromFile, startQrScanner, stopQrScanner } from '@/utils/qrscan';
+
+const qrDialogVisible = ref(false);
+let qrReader: Html5Qrcode | null = null;
+
+const qrVisible = ref(false);
+const qrImageUrl = ref('');
+const selectedQrBatchId = ref('');
+
 const addBatchRef = ref<InstanceType<typeof AddBatch>>();
 
 const tableList = ref<BatchModel[]>([]);
@@ -335,6 +394,18 @@ async function viewBatch(row: BatchModel & { batchImageUrl?: string }) {
   }
 }
 
+async function showBatchQr(batchId: string) {
+  try {
+    selectedQrBatchId.value = batchId;
+    const url = await QRCode.toDataURL(batchId);
+    qrImageUrl.value = url;
+    qrVisible.value = true;
+  } catch (err) {
+    console.error('[QR Error]', err);
+    message.error('Failed to generate QR code');
+  }
+}
+
 async function handleAddSubmit(batch: BatchModel & { imageHashes: string[] }) {
   try {
     const payload = {
@@ -410,6 +481,13 @@ function editBatch(row: BatchModel) {
   });
 }
 
+function downloadQrCode() {
+  const link = document.createElement('a');
+  link.href = qrImageUrl.value;
+  link.download = `${selectedQrBatchId.value}_qrcode.png`;
+  link.click();
+}
+
 async function deleteBatch(row: BatchModel) {
   const confirmed = await dialogConfirm(`Are you sure you want to delete batch "${row.batchId}"?`);
   if (!confirmed) return;
@@ -439,6 +517,50 @@ async function deleteBatch(row: BatchModel) {
     message.error(err.message || 'Failed to delete batch');
   }
 }
+
+function handleScanQR() {
+  qrDialogVisible.value = true;
+
+  nextTick(() => {
+    startQrScanner(
+        'qr-reader',
+        async (decodedText: string) => {
+          qrDialogVisible.value = false;
+          searchParams.batchId = decodedText; // ← Customize this part for each page
+          await fetchBatchList();                 // ← Customize this part for each page
+          message.success('QR Code Scanned: ' + decodedText);
+        },
+        (err) => {
+          console.warn('QR Scan Error', err);
+        }
+    );
+  });
+}
+
+function switchToFileScan() {
+  const input = document.getElementById('qr-file-input') as HTMLInputElement;
+  if (input) input.click();
+}
+
+async function handleQrFile(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  try {
+    const decoded = await scanQrFromFile(file);
+    message.success('QR Code Scanned: ' + decoded);
+    searchParams.batchId = decoded; // ← Customize this part for each page
+    qrDialogVisible.value = false;
+    fetchBatchList();                  // ← Customize this part for each page
+  } catch (err) {
+    message.error('Image scan failed');
+    console.error(err);
+  } finally {
+    target.value = '';
+  }
+}
+
 
 onMounted(() => {
   fetchBatchList();

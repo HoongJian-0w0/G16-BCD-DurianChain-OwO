@@ -85,7 +85,13 @@
 
     <!-- Table -->
     <el-table :data="tableList" :height="`calc(100vh - 350px)`" style="width: 100%;" size="medium">
-      <el-table-column prop="durianId" label="Durian ID" sortable />
+      <el-table-column label="Durian ID" sortable>
+        <template #default="{ row }">
+          <el-link type="primary" @click="showDurianQr(row.durianId)">
+            {{ row.durianId }}
+          </el-link>
+        </template>
+      </el-table-column>
       <el-table-column label="Variety">
         <template #default="{ row }">
           {{ row.varietyName }}
@@ -184,6 +190,27 @@
     </el-descriptions>
   </el-drawer>
 
+    <el-dialog
+        v-model="qrVisible"
+        :title="`QR Code for Durian: ${selectedQrDurianId}`"
+        width="300px"
+        center
+    >
+      <div style="text-align: center;">
+        <el-image
+            :src="qrImageUrl"
+            style="width: 200px; height: 200px; border: 1px solid #eee;"
+            fit="contain"
+        />
+        <p style="margin-top: 12px; font-size: 14px; color: #606266;">
+          {{ selectedQrDurianId }}
+        </p>
+        <el-button type="primary" size="small" @click="downloadDurianQrCode">
+          Download PNG
+        </el-button>
+      </div>
+    </el-dialog>
+
     <AddDurian v-model:visible="showAddDialog" @submit="handleCreateDurian" />
   </el-main>
 </template>
@@ -197,6 +224,30 @@ import { getMyFarmIds, getFarmById } from '@/contracts/farmer/farmContract';
 import { useUserStore } from '@/store/user';
 import AddDurian from './addDurian.vue';
 import { verifyImageHash } from '@/utils/cloudinaryUploader';
+
+import QRCode from 'qrcode';
+
+const qrVisible = ref(false);
+const qrImageUrl = ref('');
+const selectedQrDurianId = ref('');
+
+async function showDurianQr(durianId: string) {
+  try {
+    selectedQrDurianId.value = durianId;
+    qrImageUrl.value = await QRCode.toDataURL(durianId);
+    qrVisible.value = true;
+  } catch (err) {
+    console.error('[QR Code Error]', err);
+    message.error('Failed to generate QR code');
+  }
+}
+
+function downloadDurianQrCode() {
+  const link = document.createElement('a');
+  link.href = qrImageUrl.value;
+  link.download = `${selectedQrDurianId.value}_qrcode.png`;
+  link.click();
+}
 
 const userStore = useUserStore();
 const walletAddress = userStore.getWalletAddress;

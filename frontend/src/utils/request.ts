@@ -41,7 +41,7 @@ class Http {
         return error
       }
     this.instance.interceptors.response.use(
-      (res: AxiosResponse) => {
+      (res: AxiosResponse): any => {
         if (res.data.code === 200) {
           return res.data
         } else {
@@ -65,6 +65,7 @@ class Http {
               break
             case 401:
               error.data.msg = 'Unauthorized, please log in again'
+              router.push({ path: '/login' })
               break
             case 403:
               error.data.msg = 'Forbidden'

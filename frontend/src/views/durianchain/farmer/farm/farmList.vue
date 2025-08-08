@@ -132,8 +132,28 @@
           <h4>🔗 On-Chain Record</h4>
           <div class="farm-item"><b>Farm ID:</b> {{ viewFarmData.chain.farmId }}</div>
           <div class="farm-item"><b>Location:</b> {{ viewFarmData.chain.location }}</div>
-          <div class="farm-item"><b>Certificate CID:</b> {{ viewFarmData.chain.certificateCID }}</div>
-          <div class="farm-item"><b>Certificate Expiry:</b> {{ viewFarmData.chain.certificateExpiry }}</div>
+          <div class="farm-item farm-item-row">
+            <div>
+              <b>Certificate CID:</b> {{ viewFarmData.chain.certificateCID || '-' }}
+            </div>
+            <div v-if="viewFarmData.chain?.certificateCID?.trim()">
+              <el-image
+                  :src="`https://ipfs.io/ipfs/${viewFarmData.chain.certificateCID}`"
+                  style="width: 100px; height: auto; border: 1px solid #ccc; border-radius: 4px;"
+                  fit="contain"
+                  :preview-src-list="[ `https://ipfs.io/ipfs/${viewFarmData.chain.certificateCID}` ]"
+                  preview-teleported
+              />
+            </div>
+          </div>
+          <div class="farm-item">
+            <b>Certificate Expiry:</b>
+            {{
+              Number(viewFarmData.chain?.certificateExpiry) > 0
+                  ? new Date(Number(viewFarmData.chain.certificateExpiry) * 1000).toLocaleString()
+                  : '-'
+            }}
+          </div>
           <div class="farm-item"><b>Owner Address:</b> {{ viewFarmData.chain.owner }}</div>
         </div>
       </div>
@@ -251,12 +271,17 @@ async function fetchOnChainStats() {
 
     let active = 0;
     let expired = 0;
+    let totalWithCid = 0;
 
     farms.forEach(f => {
       try {
-        const expiry = toSolidityTimestamp(f.certificateExpiry);
+        const cid = f.certificateCID?.trim();
+        if (!cid) return; // Skip farms without certificate CID
 
-        if (expiry === 0) return;
+        totalWithCid++;
+
+        const expiry = toSolidityTimestamp(f.certificateExpiry);
+        if (!expiry || isNaN(expiry)) return;
 
         if (expiry > now) {
           active++;
@@ -264,17 +289,18 @@ async function fetchOnChainStats() {
           expired++;
         }
       } catch {
-        // optional: skip if parsing fails instead of counting as expired
+        // Optional: silently skip
       }
     });
 
-    onChainStats.total = farms.length;
+    onChainStats.total = totalWithCid;
     onChainStats.active = active;
     onChainStats.expired = expired;
   } catch (err: any) {
     message.error(err.message || 'Failed to load on-chain stats');
   }
 }
+
 
 function formatCid(cid: string | null | undefined) {
   return cid && cid.trim() !== '' ? cid : '-';
@@ -429,5 +455,11 @@ onMounted(async () => {
   margin-bottom: 10px;
   font-size: 14px;
   word-break: break-word;
+}
+.farm-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 </style>
