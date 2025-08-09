@@ -284,15 +284,15 @@ import { UploadFilled, UserFilled, HomeFilled, Van, VideoCameraFilled } from '@e
 import message from '@/utils/message'
 
 import { scanQrFromFile, startQrScanner, stopQrScanner } from '@/utils/qrscan'
-import { getBatchById, getBatchMilestone } from '@/contracts/farmer/batchContract'
-import { getDuriansByBatchId } from '@/api/farmer/durian' // keep if you render the durians table
+import { getBatchById, getBatchMilestone, getDuriansOnchainByBatchId } from '@/contracts/farmer/batchContract'
+import { getDuriansByBatchId } from '@/api/farmer/durian'
 import { getFarmById } from '@/contracts/farmer/farmContract'
 import { getTraderAgencyById } from '@/contracts/trader/agencyContract'
 import { getLogisticsCompanyById } from '@/contracts/logistics/logisticsCompanyContract'
-
-// NEW: backend scan + on-chain durian list (only these)
 import { scanDurian } from '@/api/farmer/durian'
-import { getDuriansOnchainByBatchId } from '@/contracts/farmer/batchContract'
+
+// NEW: backend endpoint to fetch tx hash by batchId
+import { getTxHashByBatchId } from '@/api/farmer/batch'
 
 // ---------- Helpers ----------
 const ZERO_ADDR = '0x0000000000000000000000000000000000000000'
@@ -315,7 +315,6 @@ const statusTypeMap: Record<string, 'success'|'info'|'warning'|'danger'> = {
   Delivered: 'success',
   Deleted: 'danger',
 }
-
 const statusTagType = computed(() => {
   const k = (viewData.value?.status ?? '').toString().trim()
   return statusTypeMap[k] ?? 'info'
@@ -366,24 +365,20 @@ function extractBatchIdFromContent(content: string): string {
   try { const u = new URL(str); return (u.searchParams.get('batchId') || u.searchParams.get('id') || '').trim() || str } catch {}
   return str
 }
-
 function looksLikeBatchId(s: string) { return /^batch([-_]|$)/i.test(s) }
 function looksLikeDurianId(s: string) { return /^durian([-_]|$)/i.test(s) }
 
 // Robust un-wrapper for backend scan response
 function normalizeScanResponse(scanRes: any): { success: boolean; durian: any | null } {
   const top = (scanRes && typeof scanRes === 'object' && 'data' in scanRes)
-      ? (scanRes as any).data   // axios response body
-      : scanRes                 // already-unwrapped body
-
+      ? (scanRes as any).data
+      : scanRes
   const success =
       typeof top?.success === 'boolean' ? top.success
           : typeof scanRes?.success === 'boolean' ? scanRes.success
               : false
-
   const durian =
       top?.data?.durian ?? top?.durian ?? scanRes?.data?.durian ?? null
-
   return { success, durian }
 }
 
@@ -435,13 +430,10 @@ function computeMatch(onChain?: string, backend?: string): 'match' | 'mismatch' 
   return String(onChain).toLowerCase() === String(backend).toLowerCase() ? 'match' : 'mismatch'
 }
 
-// ---------- Core resolve flow (Durian-first, safe) ----------
+// ---------- Core resolve flow ----------
 async function resolveAndLoad(batchOrDurianId: string) {
   const raw = extractBatchIdFromContent(batchOrDurianId).trim()
-  if (!raw) {
-    message.warning('No ID detected.')
-    return
-  }
+  if (!raw) { message.warning('No ID detected.'); return }
 
   manualId.value = raw
   loading.value = true
@@ -452,10 +444,9 @@ async function resolveAndLoad(batchOrDurianId: string) {
     let batchId: string | null = null
 
     if (raw.startsWith('BATCH')) {
-      // Directly handle batch ID
       batchId = raw
     } else if (raw.startsWith('DURIAN')) {
-      // Scan durian, get batchId from backend
+      // Durian → backend scan → batchId
       const scanRes = await scanDurian(raw)
       const { success, durian } = normalizeScanResponse(scanRes)
       if (success && durian?.batchId) {
@@ -468,11 +459,11 @@ async function resolveAndLoad(batchOrDurianId: string) {
         return
       }
     } else {
-      message.error('Invalid ID format.')
+      message.error('Invalid ID format. Must start with "BATCH" or "DURIAN".')
       return
     }
 
-    // === Fetch batch from on-chain ===
+    // === Fetch batch on-chain ===
     const rawBatch = await getBatchById(batchId!)
     if (!rawBatch) throw new Error('Batch not found')
     const batch = normalizeBatch(rawBatch)
@@ -496,13 +487,23 @@ async function resolveAndLoad(batchOrDurianId: string) {
       notes: m.description || '',
     }))
 
-    // === Durians ===
+    // === Durians (off-chain list for table) ===
     const dRes = await getDuriansByBatchId(batchId!)
     const durianList = (dRes?.data?.durians || []).map((d: any) => ({
       durianId: d.durianId,
       imageUrl: d.imageUrl || buildIpfsUrl(d.imageCid || d.imageCID || d.image_cid),
       imageHash: d.imageHash || d.hash || '',
     }))
+
+    // === Tx Hash (ONLY after we have a valid batchId) ===
+    let txHash = ''
+    try {
+      const txRes = await getTxHashByBatchId(batchId!)
+      const body = (txRes && 'data' in txRes) ? (txRes as any).data : txRes
+      txHash = body?.data?.txHash ?? body?.txHash ?? ''
+    } catch (e) {
+      console.warn('[getTxHashByBatchId]', e)
+    }
 
     const batchImageUrl = buildIpfsUrl(batch?.batchImageCID)
 
@@ -516,7 +517,7 @@ async function resolveAndLoad(batchOrDurianId: string) {
       farmerAddress: batch.farmer || '',
       traderAddress: batch.trader || '',
       logisticsAddress: batch.logistics || '',
-      txHash: '',
+      txHash, // <-- filled only when batch is resolved
       status: toStatusText(Number(batch.status ?? 0)),
       batchImageUrl,
       durians: durianList,
@@ -534,7 +535,6 @@ async function resolveAndLoad(batchOrDurianId: string) {
   }
 }
 
-
 // ---------- Durian modal ----------
 async function openDurianModal() {
   try {
@@ -543,7 +543,6 @@ async function openDurianModal() {
     if (!hasVal(durId)) return message.warning('Durian ID not available')
     if (!hasVal(batchId)) return message.warning('Batch ID not available')
 
-    // On-chain list → find same durian → get on-chain hash
     const onChainList = await getDuriansOnchainByBatchId(batchId)
     const onChainItem = onChainList.find(d => String(d.id) === String(durId))
 
@@ -626,7 +625,6 @@ async function openAgency() {
   const id = resolved.traderAgencyId
   const addr = cleanAddress(viewData.value?.traderAddress)
   if (!hasVal(id) && !hasVal(addr)) return
-
   try {
     if (hasVal(id)) {
       const a = await getTraderAgencyById(id!)
@@ -652,7 +650,6 @@ async function openLogistics() {
   const id = resolved.logisticsCompanyId
   const addr = cleanAddress(viewData.value?.logisticsAddress)
   if (!hasVal(id) && !hasVal(addr)) return
-
   try {
     if (hasVal(id)) {
       const l = await getLogisticsCompanyById(id!)
@@ -673,9 +670,10 @@ const canViewAgency = computed(() => hasVal(resolved.traderAgencyId) || hasVal(c
 const canViewLogistics = computed(() => hasVal(resolved.logisticsCompanyId) || hasVal(cleanAddress(viewData.value?.logisticsAddress)))
 const canViewBatch = computed(() => hasVal(resolved.batchId))
 
-// Hide Durians table in drawer when this interaction was a durian scan
+// Hide Durians table in drawer when the interaction was a durian scan
 const showDuriansTable = computed(() => !highlightDurianId.value)
 </script>
+
 
 <style scoped>
 .dc-landing {
