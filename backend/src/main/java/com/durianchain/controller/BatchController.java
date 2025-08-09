@@ -184,4 +184,23 @@ public class BatchController {
         return Result.ok().data("list", list).message("Fetched Batches by Status");
     }
 
+    @GetMapping("/txhash/{batchId}")
+    public Result getTxHashByBatchId(@PathVariable String batchId) {
+        QueryWrapper<Batch> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("batch_id", batchId)
+                .select("tx_hash");
+
+        Batch batch = batchService.getOne(queryWrapper);
+
+        if (batch != null) {
+            return Result.ok()
+                    .data("batchId", batchId)
+                    .data("txHash", batch.getTxHash())
+                    .message("Fetched TxHash by Batch ID");
+        } else {
+            return Result.error()
+                    .message("Batch not found for ID: " + batchId);
+        }
+    }
+
 }

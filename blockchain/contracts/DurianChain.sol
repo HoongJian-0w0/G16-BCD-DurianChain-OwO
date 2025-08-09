@@ -634,7 +634,6 @@ contract DurianChain {
         }
     }
 
-
     function getBatchById(string memory batchId) external view returns (
         string memory,
         string memory,
@@ -645,6 +644,8 @@ contract DurianChain {
         address,
         address,
         address,
+        string memory,
+        string memory,
         string memory,
         string memory
     ) {
@@ -661,6 +662,8 @@ contract DurianChain {
             b.farmer,
             b.trader,
             b.logistics,
+            b.traderAgencyId,
+            b.logisticsCompanyId,
             b.batchImageCID,
             b.deliveryDestination
         );

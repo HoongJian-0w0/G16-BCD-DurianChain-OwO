@@ -57,3 +57,7 @@ export function getBatchesByStatus(params: {
 }) {
     return request.get(`${BASE_URL}/by-status`, { params });
 }
+
+export function getTxHashByBatchId(batchId: string) {
+    return request.get(`${BASE_URL}/txhash/${batchId}`);
+}

@@ -206,4 +206,21 @@ public class DurianController {
         }
     }
 
+    @GetMapping("/scan/{durianId}")
+    public Result scan(@PathVariable String durianId) {
+        if (!StringUtils.hasText(durianId)) {
+            return Result.error().message("Durian ID is required");
+        }
+
+        Durian updatedDurian = durianService.incrementScanCountAndReturn(durianId);
+
+        if (updatedDurian != null) {
+            return Result.ok()
+                    .data("durian", updatedDurian)
+                    .message("Durian scan count incremented for: " + durianId);
+        } else {
+            return Result.ok().code(ResultCode.NOT_FOUND).message("Durian not found: " + durianId);
+        }
+    }
+
 }

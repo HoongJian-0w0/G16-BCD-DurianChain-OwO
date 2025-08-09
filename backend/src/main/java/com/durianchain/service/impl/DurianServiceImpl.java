@@ -1,5 +1,6 @@
 package com.durianchain.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.durianchain.entity.Durian;
 import com.durianchain.mapper.DurianMapper;
@@ -25,6 +26,21 @@ public class DurianServiceImpl extends ServiceImpl<DurianMapper, Durian> impleme
         update.setOnChain(false);
 
         return this.update(update, wrapper);
+    }
+
+    @Override
+    public Durian incrementScanCountAndReturn(String durianId) {
+        Durian durian = this.getOne(new LambdaQueryWrapper<Durian>()
+                .eq(Durian::getDurianId, durianId));
+
+        if (durian == null) {
+            return null; // Not found
+        }
+
+        durian.setScanCount(durian.getScanCount() + 1);
+        boolean updated = this.updateById(durian);
+
+        return updated ? durian : null;
     }
 
 }

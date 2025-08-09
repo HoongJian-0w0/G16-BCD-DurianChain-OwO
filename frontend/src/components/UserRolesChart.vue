@@ -12,7 +12,7 @@
 import { ref, onMounted } from 'vue'
 import * as echarts from 'echarts'
 import VChart from 'vue-echarts'
-import {getUserPage} from "@/api/admin/user/index.js";
+import {getUserPage} from "@/api/admin/user/index.ts";
 
 const chartKey = ref(0)
 const userRolesPieOption = ref({})

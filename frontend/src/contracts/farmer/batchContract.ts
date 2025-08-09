@@ -64,6 +64,8 @@ export async function getBatchById(batchId: string): Promise<{
     farmer: string;
     trader: string;
     logistics: string;
+    traderAgencyId: string
+    logisticsCompanyId: string
     batchImageCID: string;
     deliveryDestination: string;
 }> {
@@ -79,8 +81,10 @@ export async function getBatchById(batchId: string): Promise<{
         farmer: result[6],
         trader: result[7],
         logistics: result[8],
-        batchImageCID: result[9],
-        deliveryDestination: result[10],
+        traderAgencyId: result[9],
+        logisticsCompanyId: result[10],
+        batchImageCID: result[11],
+        deliveryDestination: result[12],
     };
 }
 
@@ -105,7 +109,7 @@ export async function getBatchMilestone(batchId: string): Promise<
     }));
 }
 
-export async function getDuriansByBatchId(batchId: string): Promise<{
+export async function getDuriansOnchainByBatchId(batchId: string): Promise<{
     id: string;
     imageHash: string;
 }[]> {

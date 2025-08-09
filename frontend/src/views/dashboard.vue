@@ -1,124 +1,122 @@
 <template>
-  <el-main>
-    <div class="dc-container">
-      <!-- Hero -->
-      <section class="hero">
-        <div class="hero-text">
-          <h1 class="title">Welcome to <span class="brand">Durian Chain</span></h1>
-          <p class="subtitle">
-            <span class="typing">
-              To resolve fraud in the durian industry—trace every batch, verify every certificate, and build trust from farm to fork.
-            </span>
-          </p>
-        </div>
-        <div class="hero-bg"></div>
-      </section>
-
-      <!-- KPI -->
-      <section class="kpi-grid">
-        <StatCard icon="Collection" label="Total Batches" :target="kpis.totalBatches"
-                  bg-color="#E3F2FD" icon-color="#1e88e5" />
-        <StatCard icon="Grape" label="Total Durians" :target="kpis.totalDurians"
-                  bg-color="#E8F5E9" icon-color="#2e7d32" />
-        <StatCard icon="User" label="Total Agencies" :target="kpis.totalAgencies"
-                  bg-color="#FFF8E1" icon-color="#f9a825" />
-        <StatCard icon="Van" label="Logistics Companies" :target="kpis.totalLogistics"
-                  bg-color="#EDE7F6" icon-color="#7e57c2" />
-        <StatCard icon="HomeFilled" label="Total Farms" :target="kpis.totalFarms"
-                  bg-color="#E0F2F1" icon-color="#00796b" />
-        <StatCard icon="UserFilled" label="Total Users" :target="kpis.totalUsers"
-                  bg-color="#F3E5F5" icon-color="#8e24aa" />
-      </section>
-
-      <div class="action-row">
-        <!-- Scan / Verify Durian card -->
-        <el-card class="action-card" shadow="hover">
-          <div class="action-content">
-            <div class="action-image">
-              <img src="@/assets/image/Durian-Banner-Login.jpg" alt="Verify Durian" />
-            </div>
-            <div class="action-text">
-              <h3 class="action-title">Scan to Verify Durian / Batch</h3>
-              <p class="action-subtitle">Upload or scan a QR to check on-chain authenticity.</p>
-              <el-button type="primary" size="large" @click="goVerify" round>
-                <el-icon class="mr-6"><UploadFilled /></el-icon>
-                Scan / Verify
-              </el-button>
-            </div>
-          </div>
-        </el-card>
-
-        <!-- Login card -->
-        <el-card class="action-card" shadow="hover">
-          <div class="action-content">
-            <div class="action-image">
-              <img src="@/assets/image/Durian-Banner-Login.jpg" alt="Login" />
-            </div>
-            <div class="action-text">
-              <h3 class="action-title">Login to Manage</h3>
-              <p class="action-subtitle">Access your dashboard and manage farms, batches, and agencies.</p>
-              <el-button type="success" size="large" @click="goLogin" round>
-                <el-icon class="mr-6"><UserFilled /></el-icon>
-                Login
-              </el-button>
-            </div>
-          </div>
-        </el-card>
+  <div class="dc-container">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-text">
+        <h1 class="title">Welcome to <span class="brand">Durian Chain</span></h1>
+        <p class="subtitle">
+          <span class="typing">
+            To resolve fraud in the durian industry—trace every batch, verify every certificate, and build trust from farm to fork.
+          </span>
+        </p>
       </div>
+      <div class="hero-bg"></div>
+    </section>
 
+    <!-- KPI -->
+    <section class="kpi-grid">
+      <StatCard icon="Collection" label="Total Batches" :target="kpis.totalBatches"
+                bg-color="#E3F2FD" icon-color="#1e88e5" />
+      <StatCard icon="Grape" label="Total Durians" :target="kpis.totalDurians"
+                bg-color="#E8F5E9" icon-color="#2e7d32" />
+      <StatCard icon="User" label="Total Agencies" :target="kpis.totalAgencies"
+                bg-color="#FFF8E1" icon-color="#f9a825" />
+      <StatCard icon="Van" label="Logistics Companies" :target="kpis.totalLogistics"
+                bg-color="#EDE7F6" icon-color="#7e57c2" />
+      <StatCard icon="HomeFilled" label="Total Farms" :target="kpis.totalFarms"
+                bg-color="#E0F2F1" icon-color="#00796b" />
+      <StatCard icon="UserFilled" label="Total Users" :target="kpis.totalUsers"
+                bg-color="#F3E5F5" icon-color="#8e24aa" />
+    </section>
 
-      <!-- Charts -->
-      <section class="charts-grid">
-        <el-card class="chart-card" shadow="hover">
-          <div class="chart-header"><h3 class="grad-text">User Roles Distribution</h3></div>
-          <v-chart :key="chartKey" :option="userRolesPieOption" autoresize style="height:360px;" />
-        </el-card>
-
-        <el-card class="chart-card" shadow="hover">
-          <div class="chart-header"><h3 class="grad-text">Durian Batch Status</h3></div>
-          <v-chart :option="batchStatusOption" autoresize style="height:320px;" />
-        </el-card>
-      </section>
-
-      <section class="variety-table">
-        <el-card class="chart-card wide" shadow="hover">
-          <div class="chart-header"><h3 class="grad-text">Durian Varieties</h3></div>
-
-          <el-table
-              :data="varietyState.list"
-              v-loading="varietyState.loading"
-              element-loading-text="Loading varieties…"
-              border
-              style="width: 100%;"
-              :header-cell-style="{ background: '#fafafa', fontWeight: 600 }"
-              :row-key="row => row.id"
-          >
-            <el-table-column prop="varietyId" label="ID" width="140" />
-            <el-table-column prop="name" label="Name" min-width="220" />
-            <el-table-column prop="originRegion" label="Origin" min-width="200" />
-            <el-table-column
-                prop="description"
-                label="Description"
-                min-width="360"
-                show-overflow-tooltip
-            />
-          </el-table>
-
-          <div class="table-footer">
-            <el-pagination
-                background
-                layout="prev, pager, next, jumper"
-                :page-size="varietyState.pageSize"
-                :total="varietyState.total"
-                :current-page="varietyState.pageNum"
-                @current-change="loadVarieties"
-            />
-            <span class="page-hint">{{ varietyState.total }} total</span>
+    <div class="action-row">
+      <!-- Scan / Verify Durian card -->
+      <el-card class="action-card" shadow="hover">
+        <div class="action-content">
+          <div class="action-image">
+            <img src="@/assets/image/Durian-Banner-Login.jpg" alt="Verify Durian" />
           </div>
-        </el-card>
-      </section>
+          <div class="action-text">
+            <h3 class="action-title">Scan to Verify Durian / Batch</h3>
+            <p class="action-subtitle">Upload or scan a QR to check on-chain authenticity.</p>
+            <el-button type="primary" size="large" @click="router.push('verify')" round>
+              <el-icon class="mr-6"><UploadFilled /></el-icon>
+              Scan / Verify
+            </el-button>
+          </div>
+        </div>
+      </el-card>
+
+      <!-- Login card -->
+      <el-card class="action-card" shadow="hover">
+        <div class="action-content">
+          <div class="action-image">
+            <img src="@/assets/image/Durian-Banner-Login.jpg" alt="Login" />
+          </div>
+          <div class="action-text">
+            <h3 class="action-title">Login to Manage</h3>
+            <p class="action-subtitle">Access your dashboard and manage farms, batches, and agencies.</p>
+            <el-button type="primary" size="large" @click="router.push('/login')" round>
+              <el-icon class="mr-6"><UserFilled /></el-icon>
+              Login
+            </el-button>
+          </div>
+        </div>
+      </el-card>
     </div>
-  </el-main>
+
+
+    <!-- Charts -->
+    <section class="charts-grid">
+      <el-card class="chart-card" shadow="hover">
+        <div class="chart-header"><h3 class="grad-text">User Roles Distribution</h3></div>
+        <v-chart :key="chartKey" :option="userRolesPieOption" autoresize style="height:360px;" />
+      </el-card>
+
+      <el-card class="chart-card" shadow="hover">
+        <div class="chart-header"><h3 class="grad-text">Durian Batch Status</h3></div>
+        <v-chart :option="batchStatusOption" autoresize style="height:320px;" />
+      </el-card>
+    </section>
+
+    <section class="variety-table">
+      <el-card class="chart-card wide" shadow="hover">
+        <div class="chart-header"><h3 class="grad-text">Durian Varieties</h3></div>
+
+        <el-table
+            :data="varietyState.list"
+            v-loading="varietyState.loading"
+            element-loading-text="Loading varieties…"
+            border
+            style="width: 100%;"
+            :header-cell-style="{ background: '#fafafa', fontWeight: 600 }"
+            :row-key="row => row.id"
+        >
+          <el-table-column prop="varietyId" label="ID" width="140" />
+          <el-table-column prop="name" label="Name" min-width="220" />
+          <el-table-column prop="originRegion" label="Origin" min-width="200" />
+          <el-table-column
+              prop="description"
+              label="Description"
+              min-width="360"
+              show-overflow-tooltip
+          />
+        </el-table>
+
+        <div class="table-footer">
+          <el-pagination
+              background
+              layout="prev, pager, next, jumper"
+              :page-size="varietyState.pageSize"
+              :total="varietyState.total"
+              :current-page="varietyState.pageNum"
+              @current-change="loadVarieties"
+          />
+          <span class="page-hint">{{ varietyState.total }} total</span>
+        </div>
+      </el-card>
+    </section>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -133,6 +131,7 @@ import {getDurianPage} from "@/api/farmer/durian";
 import {getAgencyPage} from "@/api/trader/agency";
 import {getLogisticsCompanyPage} from "@/api/logistics/logisticsCompany";
 import {getVarietyPage} from "@/api/admin/variety";
+import router from "@/router";
 
 const STATUS_ORDER = ['Created', 'Ordered', 'Collected', 'Delivered', 'Deleted'] as const
 type Status = (typeof STATUS_ORDER)[number]
@@ -416,7 +415,15 @@ onMounted(async () => {
 }
 
 .el-main { padding: 24px !important; }
-.dc-container { padding: 24px !important; display: flex; gap: 28px; flex-direction: column; }
+.dc-container {
+  padding: 24px !important;
+  display: flex;
+  gap: 28px;
+  flex-direction: column;
+  background-image:
+      linear-gradient(90deg, rgba(116, 195, 101, 0.02), rgba(163, 217, 119, 0.1)),
+      url('@/assets/svg/star-bg.svg');
+}
 
 /* Hero */
 .hero {

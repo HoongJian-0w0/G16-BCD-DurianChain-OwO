@@ -67,3 +67,7 @@ export function getDuriansByBatchId(batchId: string) {
 export async function releaseDurians(batchId: string) {
     return request.put(`/durian/release/${batchId}`);
 }
+
+export function scanDurian(durianId: string) {
+    return request.get(`/durian/scan/${durianId}`);
+}

@@ -1,9 +1,18 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
 const routes: Array<RouteRecordRaw> = [
+  { path: '/', redirect: '/home' },
   {
-    path: '/',
-    redirect: '/login',
+    path: '/home',
+    name: 'Dashboard',
+    component: () => import('@/views/dashboard.vue'),
+    meta: { breadcrumb: 'Dashboard' },
+  },
+  {
+    path: '/verify',
+    name: 'Verify',
+    component: () => import('@/views/verify.vue'),
+    meta: { breadcrumb: 'Verify' },
   },
   {
     path: '/login',

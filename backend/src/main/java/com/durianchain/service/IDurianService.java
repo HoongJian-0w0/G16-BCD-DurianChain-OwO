@@ -10,4 +10,6 @@ public interface IDurianService extends IService<Durian> {
 
     boolean releaseByBatchId(String batchId);
 
+    Durian incrementScanCountAndReturn(String durianId);
+
 }

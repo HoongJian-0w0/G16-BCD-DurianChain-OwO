@@ -27,10 +27,28 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
+                        // Public API pages
+                        "/user/page",
+                        "/farm/page",
+                        "/batch/page",
+                        "/batch",
+                        "/batch/txhash/*",
+                        "/durian/page",
+                        "/trader-agency/page",
+                        "/logistics-company/page",
+                        "/durian-variety/page",
+                        "/durian/scan/*",
+                        "/durian/by-batch/*",
+
+                        // Auth endpoints
                         "/auth/login",
                         "/auth/register",
+
+                        // Swagger / API docs
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
+
+                        // Error handling
                         "/error"
                 );
     }
