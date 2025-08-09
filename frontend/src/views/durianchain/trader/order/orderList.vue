@@ -67,6 +67,7 @@
             </template>
             <el-option label="Created" value="Created" />
             <el-option label="Ordered" value="Ordered" />
+            <el-option label="Delivered" value="Delivered" />
           </el-select>
         </el-form-item>
         <el-form-item class="searchField">

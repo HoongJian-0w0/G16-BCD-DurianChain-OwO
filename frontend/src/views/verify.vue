@@ -153,7 +153,23 @@
         <el-descriptions-item label="Farm ID">{{ farm?.farmId || '-' }}</el-descriptions-item>
         <el-descriptions-item label="Owner">{{ farm?.owner || '-' }}</el-descriptions-item>
         <el-descriptions-item label="Location">{{ farm?.location || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="Certificate CID">{{ farm?.certificateCID || '-' }}</el-descriptions-item>
+        <el-descriptions-item v-if="farm?.certificateCID" label="CID">
+          <div class="cid-preview">
+            <el-image
+                v-if="isImageCid(farm!.certificateCID)"
+                :src="buildIpfsUrl(farm!.certificateCID)"
+                fit="contain"
+                style="width:100%;max-width:100%;height:360px;border-radius:8px;border:1px solid #eee"
+                :preview-src-list="[buildIpfsUrl(farm!.certificateCID)]"
+                preview-teleported
+            />
+            <iframe
+                v-else
+                :src="buildIpfsUrl(farm!.certificateCID)"
+                style="width:100%;height:360px;border:1px solid #eee;border-radius:8px"
+            />
+          </div>
+        </el-descriptions-item>
         <el-descriptions-item label="Certificate Expiry">
           {{ farm?.certificateExpiry ? formatTs(farm!.certificateExpiry) : '-' }}
         </el-descriptions-item>
@@ -166,7 +182,23 @@
         <el-descriptions-item label="Agency ID">{{ agency?.agencyId || '-' }}</el-descriptions-item>
         <el-descriptions-item label="Owner">{{ agency?.owner || '-' }}</el-descriptions-item>
         <el-descriptions-item label="Agency Name">{{ agency?.agencyName || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="Export License CID">{{ agency?.exportLicenseCID || '-' }}</el-descriptions-item>
+        <el-descriptions-item v-if="agency?.exportLicenseCID" label="CID">
+          <div class="cid-preview">
+            <el-image
+                v-if="isImageCid(agency!.exportLicenseCID)"
+                :src="buildIpfsUrl(agency!.exportLicenseCID)"
+                fit="contain"
+                style="width:100%;max-width:100%;height:360px;border-radius:8px;border:1px solid #eee"
+                :preview-src-list="[buildIpfsUrl(agency!.exportLicenseCID)]"
+                preview-teleported
+            />
+            <iframe
+                v-else
+                :src="buildIpfsUrl(agency!.exportLicenseCID)"
+                style="width:100%;height:360px;border:1px solid #eee;border-radius:8px"
+            />
+          </div>
+        </el-descriptions-item>
         <el-descriptions-item label="Export License Expiry">
           {{ agency?.exportLicenseExpiry ? formatTs(agency!.exportLicenseExpiry) : '-' }}
         </el-descriptions-item>
@@ -662,6 +694,22 @@ async function openLogistics() {
     console.error('[openLogistics]', err)
     message.error(err?.message || 'Failed to load logistics details')
   }
+}
+
+async function copyCid(cid?: string) {
+  if (!cid) return
+  try {
+    await navigator.clipboard.writeText(cid)
+    message.success('CID copied to clipboard')
+  } catch {
+    message.error('Failed to copy CID')
+  }
+}
+
+function isImageCid(cid?: string) {
+  if (!cid) return false
+  const url = buildIpfsUrl(cid)
+  return /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(url)
 }
 
 // ---------- Enable checks + table visibility ----------
