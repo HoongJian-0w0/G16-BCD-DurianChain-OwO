@@ -29,7 +29,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/auth/login",
                         "/auth/register",
-                        "/swagger/**",
+                        "/swagger-ui/**",
                         "/v3/api-docs/**",
                         "/error"
                 );
