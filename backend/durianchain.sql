@@ -108,10 +108,10 @@ CREATE TABLE durian (
 
 INSERT INTO user (username, password, email, phone, name, role, wallet_address, is_approved)
 VALUES
-  ('admin', '$2a$10$VvQfC94TkS8eD1w/YHTP1O0ZzvAs.YXnNlrAOyU/kLGevk7X3E2ya', 'admin@example.com', '0100000001', 'System Admin', 'admin', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', TRUE),
-  ('farmer', '$2a$10$VvQfC94TkS8eD1w/YHTP1O0ZzvAs.YXnNlrAOyU/kLGevk7X3E2ya', 'farmer@example.com', '0100000002', 'Durian Farmer', 'farmer', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', TRUE),
-  ('logistics', '$2a$10$VvQfC94TkS8eD1w/YHTP1O0ZzvAs.YXnNlrAOyU/kLGevk7X3E2ya', 'logistics@example.com', '0100000003', 'Logistics Team', 'logistics', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', TRUE),
-  ('trader', '$2a$10$VvQfC94TkS8eD1w/YHTP1O0ZzvAs.YXnNlrAOyU/kLGevk7X3E2ya', 'trader@example.com', '0100000004', 'Durian Trader', 'trader', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', TRUE);
+  ('admin', '$2a$10$qQhi0JcGL0CFPZ.qp4tL9OWVhfeRngNfIGCC07YE5iLw2rlEHAt0G', 'admin@example.com', '0123456789', 'System Admin', 'admin', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', TRUE),
+  ('farmer', '$2a$10$qQhi0JcGL0CFPZ.qp4tL9OWVhfeRngNfIGCC07YE5iLw2rlEHAt0G', 'farmer@example.com', '0123456789', 'Durian Farmer', 'farmer', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', TRUE),
+  ('logistics', '$2a$10$qQhi0JcGL0CFPZ.qp4tL9OWVhfeRngNfIGCC07YE5iLw2rlEHAt0G', 'logistics@example.com', '0123456789', 'Logistics Team', 'logistics', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', TRUE),
+  ('trader', '$2a$10$qQhi0JcGL0CFPZ.qp4tL9OWVhfeRngNfIGCC07YE5iLw2rlEHAt0G', 'trader@example.com', '0123456789', 'Durian Trader', 'trader', '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', TRUE);
 
 INSERT INTO durian_variety (variety_id, name, origin_region, description) VALUES
 ('VARIETY-0001', 'Musang King (D197)', 'Pahang, Malaysia', 'Bright yellow flesh, rich and creamy texture, bittersweet taste, small seeds. Most popular premium variety.'),

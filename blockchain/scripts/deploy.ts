@@ -14,3 +14,8 @@ main().catch((error) => {
     console.error(error);
     process.exitCode = 1;
 });
+
+// DEPLOY SCRIPTS
+// LOCALHOST - npx hardhat run scripts/deploy.ts --network localhost
+// TESTNET - npx hardhat run scripts/deploy.ts --network sepolia
+
