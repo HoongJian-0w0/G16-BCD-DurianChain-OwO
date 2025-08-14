@@ -7,10 +7,6 @@
     </span>
     <template #dropdown>
       <el-dropdown-menu>
-        <el-dropdown-item @click="router.push('/user/profile')">
-          <el-icon class="login-label-icon"><User /></el-icon>
-          Profile
-        </el-dropdown-item>
         <el-dropdown-item @click="handleLogout">
           <el-icon class="login-label-icon"><Remove /></el-icon>
           Logout
