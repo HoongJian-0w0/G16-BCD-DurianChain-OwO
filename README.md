@@ -236,4 +236,51 @@ After deploying your smart contract with Hardhat, you need to update the fronten
 
        return contract;
    }
-   
+
+## 🔒 Access Control (Demo Mode)
+
+For presentation purposes, **role enforcement is temporarily bypassed**.  
+The contract includes the following modifiers with checks commented out:
+
+```solidity
+// ---------------- Access Control ----------------
+
+modifier onlySuperAdmin() {
+    // require(msg.sender == superAdmin, "Only super admin");
+    _;
+}
+
+modifier onlyAdmin() {
+    // require(isAdmin[msg.sender], "Only admin");
+    _;
+}
+
+modifier onlyRole(Role r) {
+    // require(roles[msg.sender] == r, "Unauthorized role");
+    _;
+}
+```
+
+### Why this is done
+- To simplify the demo and allow evaluators to trigger flows without managing wallets/roles.
+- Prevents accidental “Unauthorized role” reverts during live presentation.
+
+### ⚠️ Important: Before Production / Public Test
+Re-enable access control by **uncommenting the `require` checks** and verifying role assignments:
+
+```solidity
+modifier onlySuperAdmin() {
+    require(msg.sender == superAdmin, "Only super admin");
+    _;
+}
+
+modifier onlyAdmin() {
+    require(isAdmin[msg.sender], "Only admin");
+    _;
+}
+
+modifier onlyRole(Role r) {
+    require(roles[msg.sender] == r, "Unauthorized role");
+    _;
+}
+```
